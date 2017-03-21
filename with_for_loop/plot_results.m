@@ -117,7 +117,7 @@ function plot_results(mpciterations, T, t, x_des, e, u)
   grid on;
   axis([0 time-0.1 -11 11]);
   hold on;
-
+  
   plot(t,u1,'LineWidth',2);
   plot(t,u2,'LineWidth',2);
   plot(t,u3,'LineWidth',2);
