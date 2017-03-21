@@ -1,0 +1,10 @@
+01. 0 --> [1,1,1,0-]
+    N=3,
+    mpciterations=100.
+    t_exec = 4271.885475 seconds
+    u Ε [-10,10]
+02. 0 --> [1,1,1,0-]
+    N=3,
+    mpciterations=300.
+    t_exec = 12526.581143 seconds
+    u Ε [-10,10]

@@ -10,7 +10,7 @@ close all;
 %% Global parameters
 
 global t;
-global x; % THIS IS THE ERROR:- the formalization is due to the code of nmpc.m
+global x; % THIS IS THE ERROR:- the formalization is due to the api of nmpc.m
 global u;
 global des_1;
 
@@ -29,7 +29,7 @@ I_z_1 = 0.25;
 
 %% NMPC Parameters
 
-mpciterations = 2;
+mpciterations = 300;
 N             = 3;         % length of Horizon
 T             = 0.1;     % sampling time
 tmeasure      = 0.0;       % t_0

@@ -113,7 +113,7 @@ function plot_results(mpciterations, T, t, x_des, e, u)
   fig9 = figure(9);
   title('$Control \ Inputs$','interpreter','latex','fontsize',16);
   xlabel('$t \ [sec]$','interpreter','latex','fontsize',16);
-  ylabel('$u_i(t), i \in \{1,\dots,8\}$','interpreter','latex','fontsize',16);
+  ylabel('$u_i(t), i \in \{1,\dots,6\}$','interpreter','latex','fontsize',16);
   grid on;
   axis([0 time-0.1 -11 11]);
   hold on;
@@ -124,9 +124,7 @@ function plot_results(mpciterations, T, t, x_des, e, u)
   plot(t,u4,'LineWidth',2);
   plot(t,u5,'LineWidth',2);
   plot(t,u6,'LineWidth',2);
-  plot(t,u7,'LineWidth',2);
-  plot(t,u8,'LineWidth',2);
-  legend({'$u_1(t)$','$u_2(t)$', '$u_3(t)$', '$u_4(t)$', '$u_5(t)$', '$u_6(t)$', '$u_7(t)$', '$u_8(t)$'},'interpreter','latex','fontsize',16, 'Location','southeast');
+  legend({'$u_1(t)$','$u_2(t)$', '$u_3(t)$', '$u_4(t)$', '$u_5(t)$', '$u_6(t)$'},'interpreter','latex','fontsize',16, 'Location','southeast');
   print('control_inputs','-depsc','-r500');
   
   
