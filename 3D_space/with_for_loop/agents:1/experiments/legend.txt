@@ -1,0 +1,12 @@
+01-03:
+04: one agent
+    N = 300 iterations,
+    with terminal constraint
+    -1 <= u <= 1
+    avoid sphere at (0.5, 0.5, 0.5) with radius 0.2
+
+05: one agent
+    N = 100 iterations
+    without terminal constraint
+    -10 <= u <= 10
+    avoid sphere at (0.5, 0.5, 0.5) with radius 0.2

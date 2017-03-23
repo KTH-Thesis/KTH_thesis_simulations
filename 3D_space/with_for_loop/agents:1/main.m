@@ -1,11 +1,10 @@
 function main
 
   %% Initialization
-  tic;
-  addpath('./nmpcroutine');
   clc;
   clear all;
   close all;
+  tic;
 
   %% Global parameters
 
@@ -28,8 +27,8 @@ function main
   I_z_1 = 0.25;
 
 
-  
-  total_iterations = 5;
+
+  total_iterations = 100;
 
   %% NMPC Parameters
 
@@ -42,22 +41,27 @@ function main
   xmeasure      = x_init - des_1;
   u0            = 10*ones(6,N); % initial guess
   tol_opt       = 1e-8;
-  opt_option    = 0;
+  opt_option    = 1;
   iprint        = 5;
   type          = 'differential equation';
   atol_ode_real = 1e-12;
   rtol_ode_real = 1e-12;
   atol_ode_sim  = 1e-4;
   rtol_ode_sim  = 1e-4;
-  
-  tT = 
 
-  
+  tT = [];
+  xX = [];
+  uU = [];
+
+
   for i=1:total_iterations
-    
-    tT = [tT; tmeasure];     
+
+    fprintf('iteration %d', i);
+
+
+    tT = [tT; tmeasure];
     xX = [xX; xmeasure];
-    
+
 
     nmpc(@runningcosts, @terminalcosts, @constraints, ...
       @terminalconstraints, @linearconstraints, @system_ct, ...
@@ -70,13 +74,13 @@ function main
     x_init        = x(end,:);   % new x_0
     xmeasure      = x_init;
     u0            = [u_open_loop(:,2:size(u_open_loop,2)) u_open_loop(:,size(u_open_loop,2))];
-       
+
     uU = [uU; u];
 
-    
+
   end
 
-  
+
   % Save variables
   % save('variables.mat');
   save('xX.mat');
@@ -85,7 +89,6 @@ function main
 
   %% Plots
   plot_results(total_iterations, T, tT, des_1, xX, uU);
-  rmpath('./nmpcroutine');
   toc;
 end
 
@@ -97,7 +100,7 @@ end
 %% Running Cost
 
 function cost = runningcosts(t, e, u)
-   
+
   e=e';
   Q = 10*eye(12);
   R = 2*eye(6);
@@ -107,16 +110,25 @@ end
 
 function cost = terminalcosts(t, e)
 
-   e = e'; 
+   e = e';
    P = 10*eye(12);
    cost = e'*P*e;
 end
 %% Constraints
 
 function [c,ceq] = constraints(t, e, u)
+
+    global des_1;
+
+    c = [];
+    ceq = [];
+
+    c(1) = 0.09 - (e(1)+des_1(1) - 0.5)^2 - (e(2)+des_1(2) - 0.5)^2 - (e(3)+des_1(3) - 0.5)^2;
+    c(2) = e(4) + des_1(4) - pi/2;
+    c(3) = -pi/2 - e(4) + des_1(4);
+
 %    eps = 0.1;
-%    global x_des;
-%     
+%
 %     c(1) = -e(11)-x_des(11)+eps;
 %     c(2) = e(11)+x_des(11)-pi/2;
 %     c(3) = e(12)+x_des(12)-pi/2;
@@ -126,18 +138,21 @@ function [c,ceq] = constraints(t, e, u)
 %     c(7) = e(16)+x_des(16)-pi/2;
 %     c(8) = -e(16)-x_des(16)-pi/2;
 %     c(9) = 4-(e(1)+x_des(1)-5)^2-(e(2)+x_des(2)-5)^2-(e(3)+x_des(3)-1)^2;
-
-    c = [];
-    ceq = [];
 end
 %% Terminal Constraints
 
 function [c,ceq] = terminalconstraints(t, e)
+
+    global des_1;
+
+    c(2) = e(4) + des_1(4) - pi/2;
+    c(3) = -pi/2 - e(4) + des_1(4);
+
 %    eps = 10;
 %    eps2 = 0.1;
-%    
+%
 %    c(1) = e(1)-eps;
-%    c(2) = -e(1)-eps;    
+%    c(2) = -e(1)-eps;
 %    c(3) = e(2)-eps;
 %    c(4) = -e(2)-eps;
 %    c(5) = e(3)-eps2;
@@ -161,7 +176,7 @@ function [c,ceq] = terminalconstraints(t, e)
 %    c(23) = e(12)-eps2;
 %    c(24) = -e(12)-eps2;
 %    c(25) = e(13)-eps;
-%    c(26) = -e(13)-eps;    
+%    c(26) = -e(13)-eps;
 %    c(27) = e(14)-eps;
 %    c(28) = -e(14)-eps;
 %    c(29) = e(15)-eps2;
@@ -179,7 +194,7 @@ function [A, b, Aeq, beq, lb, ub] = linearconstraints(t, x, u)
     b   = [];
     Aeq = [];
     beq = [];
-    
+
     % u constraints
     lb  = -10;
     ub  = 10;
@@ -190,8 +205,9 @@ end
 
 function printHeader()
 
-fprintf('   k  |      u1(t)        u2(t)      u3(t)      u4(t)        u5(t)      u6(t)        e1(t)       e2(t)       e3(t)       e4(t)       e5(t)       e6(t)       e7(t)       e8(t)      e9(t)       e10(t)      e11(t)       e12(t)      Time\n');
-fprintf('------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n');
+  fprintf('------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n');
+  fprintf('   k  |      u1(t)        u2(t)      u3(t)      u4(t)        u5(t)      u6(t)        e1(t)       e2(t)       e3(t)       e4(t)       e5(t)       e6(t)       e7(t)       e8(t)      e9(t)       e10(t)      e11(t)       e12(t)      Time\n');
+  fprintf('------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n');
 
 end
 
