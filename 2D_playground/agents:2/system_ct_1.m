@@ -1,5 +1,7 @@
 function dx = system_ct_1(t, e, u, T)
 
+size(u)
+
   % Desired placements (destinations)
   global des_1;
 
