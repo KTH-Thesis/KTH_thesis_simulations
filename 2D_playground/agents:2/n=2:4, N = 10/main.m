@@ -85,7 +85,7 @@ function main
   r              = [0.1; 0.1];
 
   % Proximity tolerance
-  ptol           = 0.05;
+  ptol           = 0.01;
   d_min          = r(1) + r(2) + ptol;
   d_max          = 2 * (r(1) + r(2)) + ptol;
 
@@ -369,7 +369,7 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   ceq = [];
 
 
-  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^3;
+  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^2;
 
 end
 
@@ -381,7 +381,7 @@ function [c,ceq] = terminalconstraints_2(t_2, e_2)
   ceq = [];
 
 
-  c(1) = e_2(1)^2 + e_2(2)^2 - ptol^3;
+  c(1) = e_2(1)^2 + e_2(2)^2 - ptol^2;
 
 end
 

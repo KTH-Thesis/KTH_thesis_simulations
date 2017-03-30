@@ -40,9 +40,9 @@ function main
 
   %% NMPC Parameters
 
-  total_iterations = 40;
+  total_iterations = 100;
   mpciterations  = 1;
-  N              = 10;       % length of Horizon
+  N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
   opt_option     = 1;
@@ -85,9 +85,9 @@ function main
   r              = [0.1; 0.1];
 
   % Proximity tolerance
-  ptol           = 0.05;
+  ptol           = 0.01;
   d_min          = r(1) + r(2) + ptol;
-  d_max          = 2 * (r(1) + r(2)) + ptol;
+  d_max          = 3/2 * (r(1) + r(2)) + ptol;
 
 
 
@@ -167,8 +167,6 @@ function main
   plot(sqrt(dx.^2 + dy.^2) - (r(1)+r(2))*ones(size(tT_1)));
   legend({'$distance$'},'interpreter','latex','fontsize',16);
   print('distance','-depsc','-r500');
-  
-  
 
   toc;
 end
@@ -249,12 +247,12 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   if n_2 > 0
     
-    x_open_loop_2_cut = x_open_loop_2(2:4,:);
+    x_open_loop_2_cut = x_open_loop_2(2:3,:);
 
     if method == 1
 
-      dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(1,1) - des_2(1);
-      dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(1,2) - des_2(2);
+      dist_x = e_1(1) + des_1(1) - x_open_loop_2(1,1) - des_2(1);
+      dist_y = e_1(2) + des_1(2) - x_open_loop_2(1,2) - des_2(2);
 
       % Avoid collision with agent 2
       c(2) = d_min^2 - dist_x^2 - dist_y^2;
@@ -265,7 +263,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
     elseif method == 2
 
       % Avoid collision with agent 2 along the entire horizon
-      for i=1:3
+      for i=1:2
 
         dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
         dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
@@ -275,12 +273,12 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
 
       % Maintain connectivity with agent 2 along the entire horizon
-       for i=1:3
+       for i=1:2
 
          dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
          dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
 
-         c(1 + 3 + i) = dist_x^2 + dist_y^2 - d_max^2;
+         c(1 + 2 + i) = dist_x^2 + dist_y^2 - d_max^2;
        end
 
     end
@@ -313,16 +311,16 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
   c = [];
   ceq = [];
 
-   c(1) = (obs(1,3) + r(2) + ptol)^2 - (e_2(1)+des_2(1) - obs(1,1))^2 - (e_2(2)+des_2(2) - obs(1,2))^2;
+   c(1) = (obs(1,3) + r(2,1) + ptol)^2 - (e_2(1)+des_2(1) - obs(1,1))^2 - (e_2(2)+des_2(2) - obs(1,2))^2;
 
   if n_1 > 0
     
-    x_open_loop_1_cut = x_open_loop_1(2:4,:);
+    x_open_loop_1_cut = x_open_loop_1(2:3,:);
 
     if method == 1
 
-      dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(1,1) - des_1(1);
-      dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(1,2) - des_1(2);
+      dist_x = e_2(1) + des_2(1) - x_open_loop_1(1,1) - des_1(1);
+      dist_y = e_2(2) + des_2(2) - x_open_loop_1(1,2) - des_1(2);
 
       % Avoid collision with agent 2
       c(2) = d_min^2 - dist_x^2 - dist_y^2;
@@ -333,7 +331,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
     elseif method == 2
 
       % Avoid collision with agent 2 along the entire horizon
-      for i=1:3
+      for i=1:2
 
         dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
         dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
@@ -343,12 +341,12 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
 
 
       % Maintain connectivity with agent 2 along the entire horizon
-       for i=1:3
+       for i=1:2
 
          dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
          dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
 
-         c(1 + 3 + i) = dist_x^2 + dist_y^2 - d_max^2;
+         c(1 + 2 + i) = dist_x^2 + dist_y^2 - d_max^2;
        end
 
      end
@@ -369,7 +367,7 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   ceq = [];
 
 
-  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^3;
+  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^2;
 
 end
 
@@ -381,7 +379,7 @@ function [c,ceq] = terminalconstraints_2(t_2, e_2)
   ceq = [];
 
 
-  c(1) = e_2(1)^2 + e_2(2)^2 - ptol^3;
+  c(1) = e_2(1)^2 + e_2(2)^2 - ptol^2;
 
 end
 

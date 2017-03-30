@@ -1,11 +1,11 @@
-function dx = system_ct_1(t, e, u, T)
+function dx = system_ct_2(t, e, u, T)
 
   % Desired placements (destinations)
-  global des_1;
+  global des_2;
 
-  % State vector of agent 1:
+  % State vector of agent 2:
   % [x,y]
-  state = e' + des_1;
+  state = e' + des_2;
 
   x = state(1);
   y = state(2);
