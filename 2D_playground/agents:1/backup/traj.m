@@ -14,9 +14,3 @@ for i=1:size(tT_1,1)
   cla
   grid
 end
-
-figure
-plot(xX_1(:,1))
-hold on
-plot(xX_1(:,2))
-grid

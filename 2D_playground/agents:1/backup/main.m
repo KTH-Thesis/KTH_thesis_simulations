@@ -22,17 +22,16 @@ function main
   global obs;
   global r;
   global ptol;
-  global omega_v;
 
 
   %% NMPC Parameters
 
-  total_iterations = 100;
+  total_iterations = 50;
   mpciterations  = 1;
   N              = 3;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
-  opt_option     = 0;
+  opt_option     = 1;
   iprint         = 5;
   type           = 'differential equation';
   atol_ode_real  = 1e-12;
@@ -42,12 +41,11 @@ function main
 
   % Proximity tolerance
   ptol           = 0.01;
-  omega_v        = 0.001;
 
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
-  x_init_1       = [0, 0];   % x_0
-  des_1          = [2, 2];   % x_des
+  x_init_1       = [0, 0.55];   % x_0
+  des_1          = [2, 0.55];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -57,7 +55,7 @@ function main
 
 
   % obstacles: x_c, y_c, r
-  obs = [1, 1, 0.2];
+  obs = [1, 0.4, 0.2];
 
   % radii of agents
   r = [0.1];
@@ -120,7 +118,7 @@ end
 function cost_1 = terminalcosts_1(t_1, e_1)
 
    e_1 = e_1';
-   P_1 = 100*eye(2);
+   P_1 = 10*eye(2);
    cost_1 = e_1'*P_1*e_1;
 end
 
@@ -157,13 +155,13 @@ end
 
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
-  global omega_v;
+  global ptol;
 
   c = [];
   ceq = [];
 
 
-  c(1) = sqrt(e_1(1)^2 + e_1(2)^2) - omega_v;
+  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^2;
 
 end
 

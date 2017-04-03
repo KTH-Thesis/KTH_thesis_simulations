@@ -36,13 +36,14 @@ function main
   global d_min;
   global d_max;
   global ptol;
+  global omega_v;
 
 
   %% NMPC Parameters
 
-  total_iterations = 40;
+  total_iterations = 100;
   mpciterations  = 1;
-  N              = 10;       % length of Horizon
+  N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
   opt_option     = 1;
@@ -56,8 +57,8 @@ function main
 
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
-  x_init_1       = [0, 0.70];   % x_0
-  des_1          = [2, 0.70];   % x_des
+  x_init_1       = [0, 3.5];   % x_0
+  des_1          = [12.5, 3.5];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -68,8 +69,8 @@ function main
 
   % init Agent 2
   tmeasure_2     = 0.0;         % t_0
-  x_init_2       = [0, 0.45];   % x_0
-  des_2          = [2, 0.45];   % x_des
+  x_init_2       = [0, 2.3];   % x_0
+  des_2          = [12.5, 2.3];   % x_des
   xmeasure_2     = x_init_2 - des_2;
   u0_2           = 10*ones(num_inputs, N); % initial guess
 
@@ -79,13 +80,18 @@ function main
 
 
   % obstacles: x_c, y_c, r
-  obs            = [1, 0.45, 0.2];
+  obs            = [5, 2.3, 1];
 
   % radii of agents
-  r              = [0.1; 0.1];
+  r              = [0.5; 0.5];
 
   % Proximity tolerance
-  ptol           = 0.05;
+  ptol           = 0.01;
+
+  % Terminal cost tolerance
+  omega_v        = 0.001;
+
+  % Distance bounds
   d_min          = r(1) + r(2) + ptol;
   d_max          = 2 * (r(1) + r(2)) + ptol;
 
@@ -167,8 +173,6 @@ function main
   plot(sqrt(dx.^2 + dy.^2) - (r(1)+r(2))*ones(size(tT_1)));
   legend({'$distance$'},'interpreter','latex','fontsize',16);
   print('distance','-depsc','-r500');
-  
-  
 
   toc;
 end
@@ -204,7 +208,7 @@ function cost_1 = terminalcosts_1(t_1, e_1)
 
    e_1 = e_1';
 
-   P_1 = 100*eye(2);
+   P_1 = 10*eye(2);
 
    cost_1 = e_1'*P_1*e_1;
 end
@@ -213,7 +217,7 @@ function cost_2 = terminalcosts_2(t_2, e_2)
 
    e_2 = e_2';
 
-   P_2 = 100*eye(2);
+   P_2 = 10*eye(2);
 
    cost_2 = e_2'*P_2*e_2;
 end
@@ -248,8 +252,8 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
    c(1) = (obs(1,3) + r(1) + ptol)^2 - (e_1(1)+des_1(1) - obs(1,1))^2 - (e_1(2)+des_1(2) - obs(1,2))^2;
 
   if n_2 > 0
-    
-    x_open_loop_2_cut = x_open_loop_2(2:4,:);
+
+    x_open_loop_2_cut = x_open_loop_2(2:3,:);
 
     if method == 1
 
@@ -265,7 +269,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
     elseif method == 2
 
       % Avoid collision with agent 2 along the entire horizon
-      for i=1:3
+      for i=1:2
 
         dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
         dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
@@ -275,12 +279,12 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
 
       % Maintain connectivity with agent 2 along the entire horizon
-       for i=1:3
+       for i=1:2
 
          dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
          dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
 
-         c(1 + 3 + i) = dist_x^2 + dist_y^2 - d_max^2;
+         c(1 + 2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
        end
 
     end
@@ -316,8 +320,8 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
    c(1) = (obs(1,3) + r(2) + ptol)^2 - (e_2(1)+des_2(1) - obs(1,1))^2 - (e_2(2)+des_2(2) - obs(1,2))^2;
 
   if n_1 > 0
-    
-    x_open_loop_1_cut = x_open_loop_1(2:4,:);
+
+    x_open_loop_1_cut = x_open_loop_1(2:3,:);
 
     if method == 1
 
@@ -333,7 +337,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
     elseif method == 2
 
       % Avoid collision with agent 2 along the entire horizon
-      for i=1:3
+      for i=1:2
 
         dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
         dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
@@ -343,12 +347,12 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
 
 
       % Maintain connectivity with agent 2 along the entire horizon
-       for i=1:3
+       for i=1:2
 
          dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
          dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
 
-         c(1 + 3 + i) = dist_x^2 + dist_y^2 - d_max^2;
+         c(1 + 2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
        end
 
      end
@@ -363,25 +367,25 @@ end
 
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
-  global ptol;
+  global omega_v;
 
   c = [];
   ceq = [];
 
 
-  c(1) = e_1(1)^2 + e_1(2)^2 - ptol^3;
+  c(1) = sqrt(e_1(1)^2 + e_1(2)^2) - omega_v;
 
 end
 
 function [c,ceq] = terminalconstraints_2(t_2, e_2)
 
-  global ptol;
+  global omega_v;
 
   c = [];
   ceq = [];
 
 
-  c(1) = e_2(1)^2 + e_2(2)^2 - ptol^3;
+  c(1) = sqrt(e_2(1)^2 + e_2(2)^2) - omega_v;
 
 end
 
@@ -394,8 +398,8 @@ function [A, b, Aeq, beq, lb, ub] = linearconstraints_1(t_1, x_1, u_1)
     beq = [];
 
     % u constraints
-    lb  = -2;
-    ub  = 2;
+    lb  = -10;
+    ub  = 10;
 end
 
 function [A, b, Aeq, beq, lb, ub] = linearconstraints_2(t_2, x_2, u_2)
@@ -405,8 +409,8 @@ function [A, b, Aeq, beq, lb, ub] = linearconstraints_2(t_2, x_2, u_2)
     beq = [];
 
     % u constraints
-    lb  = -2;
-    ub  = 2;
+    lb  = -10;
+    ub  = 10;
 end
 
 
