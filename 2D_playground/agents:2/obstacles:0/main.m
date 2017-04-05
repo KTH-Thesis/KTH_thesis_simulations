@@ -28,8 +28,7 @@ function main
   global x_open_loop_2;
 
 
-  % Obstacles
-  global obs;
+  % Radii of agents
   global r;
 
   % Proximities
@@ -57,8 +56,8 @@ function main
 
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
-  x_init_1       = [-6, 3.5];   % x_0
-  des_1          = [6, 3.5];   % x_des
+  x_init_1       = [-10, 3.5];   % x_0
+  des_1          = [10, 3.5];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -69,8 +68,8 @@ function main
 
   % init Agent 2
   tmeasure_2     = 0.0;         % t_0
-  x_init_2       = [-6, 2.3];   % x_0
-  des_2          = [6, 2.3];   % x_des
+  x_init_2       = [-10, 2.3];   % x_0
+  des_2          = [10, 2.3];   % x_des
   xmeasure_2     = x_init_2 - des_2;
   u0_2           = 10*ones(num_inputs, N); % initial guess
 
@@ -78,9 +77,6 @@ function main
   xX_2           = [];
   uU_2           = [];
 
-
-  % obstacles: x_c, y_c, r
-  obs            = [0, 2.3, 1];
 
   % radii of agents
   r              = [0.5; 0.5];
@@ -155,10 +151,10 @@ function main
   %% Plots
 
   % Plot trajectory of agent 1
-  plot_results(total_iterations, T, tT_1, des_1, xX_1, uU_1, obs, r, 1);
+  plot_results(total_iterations, T, tT_1, des_1, xX_1, uU_1, r, 1);
 
   % Plot trajectory of agent 2
-  plot_results(total_iterations, T, tT_2, des_2, xX_2, uU_2, obs, r, 2);
+  plot_results(total_iterations, T, tT_2, des_2, xX_2, uU_2, r, 2);
 
   % Plot both
   L = findobj(1,'type','line');
@@ -186,7 +182,7 @@ function cost_1 = runningcosts_1(t_1, e_1, u_1)
   e_1=e_1';
 
   Q_1 = 10 * eye(2);
-  R_1 = 1 * eye(2);
+  R_1 = [1, 0; 0, 0.1];
 
   cost_1 = e_1'*Q_1*e_1 + u_1'*R_1*u_1;
 end
@@ -196,7 +192,7 @@ function cost_2 = runningcosts_2(t_2, e_2, u_2)
   e_2=e_2';
 
   Q_2 = 10 * eye(2);
-  R_2 = 1 * eye(2);
+  R_2 = [1, 0; 0, 0.1];
 
   cost_2 = e_2'*Q_2*e_2 + u_2'*R_2*u_2;
 end
@@ -228,7 +224,6 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   global des_1;
   global des_2;
-  global obs;
   global r;
   global ptol;
   global d_min;
@@ -247,10 +242,6 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   %         2= avoid agent 2's predicted trajectory
   method = 2;
 
-
-  % Avoid collision with obstacle
-   c(1) = (obs(1,3) + r(1) + ptol)^2 - (e_1(1)+des_1(1) - obs(1,1))^2 - (e_1(2)+des_1(2) - obs(1,2))^2;
-
   if n_2 > 0
 
     x_open_loop_2_cut = x_open_loop_2(2:3,:);
@@ -261,10 +252,10 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
       dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(1,2) - des_2(2);
 
       % Avoid collision with agent 2
-      c(2) = d_min^2 - dist_x^2 - dist_y^2;
+      c(1) = d_min^2 - dist_x^2 - dist_y^2;
 
       % Maintain connectivity with agent 2
-      c(3) = dist_x^2 + dist_y^2 - d_max^2;
+      c(2) = dist_x^2 + dist_y^2 - d_max^2;
 
     elseif method == 2
 
@@ -274,7 +265,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
         dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
         dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
 
-        c(1 + i) = d_min^2 - dist_x^2 - dist_y^2;
+        c(i) = d_min^2 - dist_x^2 - dist_y^2;
       end
 
 
@@ -284,7 +275,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
          dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(i,1) - des_2(1);
          dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(i,2) - des_2(2);
 
-         c(1 + 2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
+         c(2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
        end
 
     end
@@ -298,7 +289,6 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
 
   global des_1;
   global des_2;
-  global obs;
   global r;
   global ptol;
   global d_min;
@@ -317,8 +307,6 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
   c = [];
   ceq = [];
 
-   c(1) = (obs(1,3) + r(2) + ptol)^2 - (e_2(1)+des_2(1) - obs(1,1))^2 - (e_2(2)+des_2(2) - obs(1,2))^2;
-
   if n_1 > 0
 
     x_open_loop_1_cut = x_open_loop_1(2:3,:);
@@ -329,10 +317,10 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
       dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(1,2) - des_1(2);
 
       % Avoid collision with agent 2
-      c(2) = d_min^2 - dist_x^2 - dist_y^2;
+      c(1) = d_min^2 - dist_x^2 - dist_y^2;
 
       % Maintain connectivity with agent 2
-      c(3) = dist_x^2 + dist_y^2 - d_max^2;
+      c(2) = dist_x^2 + dist_y^2 - d_max^2;
 
     elseif method == 2
 
@@ -342,7 +330,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
         dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
         dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
 
-        c(1 + i) = d_min^2 - dist_x^2 - dist_y^2;
+        c(i) = d_min^2 - dist_x^2 - dist_y^2;
       end
 
 
@@ -352,7 +340,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
          dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(i,1) - des_1(1);
          dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(i,2) - des_1(2);
 
-         c(1 + 2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
+         c(2 + i) = sqrt(dist_x^2 + dist_y^2) - d_max;
        end
 
      end
@@ -373,6 +361,7 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   ceq = [];
 
 
+%   c(1) = sqrt(e_1(1)^2 + e_1(2)^2) - omega_v;
   c(1) = e_1(1) - omega_v;
   c(2) = -e_1(1) - omega_v;
   c(3) = e_1(2) - omega_v;
@@ -388,6 +377,7 @@ function [c,ceq] = terminalconstraints_2(t_2, e_2)
   ceq = [];
 
 
+%   c(1) = sqrt(e_2(1)^2 + e_2(2)^2) - omega_v;
   c(1) = e_2(1) - omega_v;
   c(2) = -e_2(1) - omega_v;
   c(3) = e_2(2) - omega_v;

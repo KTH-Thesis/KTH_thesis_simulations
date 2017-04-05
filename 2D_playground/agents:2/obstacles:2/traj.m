@@ -7,21 +7,21 @@ load('xX_2.mat')
 
 figure
 grid
-axis([-1 15 0 5])
+axis([-7 7 0 5])
 axis equal
-% hold on
-% for i=1:size(tT_1,1)
-%   
-%   plot(des_1(1), des_1(2), 'X')
-%   plot(des_2(1), des_2(2), 'X')
-%   
-%   viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
-%   viscircles([xX_2(i,1) + des_2(1),  xX_2(i,2) + des_2(2)], r(2), 'EdgeColor', 'r')
-%   viscircles([obs(:,1), obs(:,2)], obs(:,3), 'EdgeColor', 'k')
-% 
-%   pause()
-%   cla
-% end
+hold on
+for i=1:size(tT_1,1)
+  
+  plot(des_1(1), des_1(2), 'X')
+  plot(des_2(1), des_2(2), 'X')
+  
+  viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
+  viscircles([xX_2(i,1) + des_2(1),  xX_2(i,2) + des_2(2)], r(2), 'EdgeColor', 'r')
+  viscircles([obs(:,1), obs(:,2)], obs(:,3), 'EdgeColor', 'k')
+
+  pause()
+  cla
+end
 
 
 % Distances of agent 1 from obstacles

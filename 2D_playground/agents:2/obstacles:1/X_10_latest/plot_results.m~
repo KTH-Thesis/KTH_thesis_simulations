@@ -9,7 +9,7 @@ function fig = plot_results(mpciterations, T, t, x_des, e, u, obs, r, id)
 
   plot(e(:,1)+x_des(1)*ones(size(t)), e(:,2)+x_des(2)*ones(size(t)))
   viscircles([e(:,1)+x_des(1)*ones(size(t)), e(:,2)+x_des(2)*ones(size(t))], r(id)*ones(size(t)))
-  viscircles([obs(:,1), obs(:,2)], obs(:,3), 'EdgeColor', 'k')
+  viscircles([obs(:,1), obs(:,2)], obs(:,3))
 
   filename = strcat('e', num2str(id));
   legend({'$d$'},'interpreter','latex','fontsize',16);

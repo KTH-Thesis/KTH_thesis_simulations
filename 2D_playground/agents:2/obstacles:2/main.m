@@ -60,8 +60,8 @@ function main
 
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
-  x_init_1       = [0, 3.9];   % x_0
-  des_1          = [12.5, 3.9];   % x_des
+  x_init_1       = [-6, 3.9];   % x_0
+  des_1          = [6, 3.9];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -72,8 +72,8 @@ function main
 
   % init Agent 2
   tmeasure_2     = 0.0;         % t_0
-  x_init_2       = [0, 2.6];   % x_0
-  des_2          = [12.5, 2.6];   % x_des
+  x_init_2       = [-6, 2.6];   % x_0
+  des_2          = [6, 2.6];   % x_des
   xmeasure_2     = x_init_2 - des_2;
   u0_2           = 10*ones(num_inputs, N); % initial guess
 
@@ -88,8 +88,8 @@ function main
   r_o            = 1;
 
   % obstacles: x_c, y_c, r
-  obs            = [5, 2, r_o;
-                    5, 2 + 2*r_o + 2*r(1) + 10*ptol, r_o];
+  obs            = [0, 2, r_o;
+                    0, 2 + 2*r_o + 2*r(1) + 10*ptol, r_o];
 
 
   % Terminal cost tolerance
@@ -190,7 +190,7 @@ function cost_1 = runningcosts_1(t_1, e_1, u_1)
   e_1=e_1';
 
   Q_1 = 10 * eye(2);
-  R_1 = 2 * eye(2);
+  R_1 = 1 * eye(2);
 
   cost_1 = e_1'*Q_1*e_1 + u_1'*R_1*u_1;
 end
@@ -200,7 +200,7 @@ function cost_2 = runningcosts_2(t_2, e_2, u_2)
   e_2=e_2';
 
   Q_2 = 10 * eye(2);
-  R_2 = 2*eye(2);
+  R_2 = 1 * eye(2);
 
   cost_2 = e_2'*Q_2*e_2 + u_2'*R_2*u_2;
 end
@@ -381,7 +381,10 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   ceq = [];
 
 
-  c(1) = sqrt(e_1(1)^2 + e_1(2)^2) - omega_v;
+  c(1) = e_1(1) - omega_v;
+  c(2) = -e_1(1) - omega_v;
+  c(3) = e_1(2) - omega_v;
+  c(4) = -e_1(2) - omega_v;
 
 end
 
@@ -393,8 +396,11 @@ function [c,ceq] = terminalconstraints_2(t_2, e_2)
   ceq = [];
 
 
-  c(1) = sqrt(e_2(1)^2 + e_2(2)^2) - omega_v;
-
+  c(1) = e_2(1) - omega_v;
+  c(2) = -e_2(1) - omega_v;
+  c(3) = e_2(2) - omega_v;
+  c(4) = -e_2(2) - omega_v;
+  
 end
 
 %% Control Constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
