@@ -13,7 +13,7 @@ global x;
 global u;
 %% NMPC parameters
 
-mpciterations = 30;
+mpciterations = 100;
 N             = 3;
 T             = 0.1;
 tmeasure      = 0.0;

@@ -185,8 +185,9 @@ function cost_1 = runningcosts_1(t_1, e_1, u_1)
 
   e_1=e_1';
 
-  Q_1 = 10 * eye(2);
-  R_1 = 1 * eye(2);
+  Q_1 = 4 * eye(2);
+  R_1 = [0.005, 0;
+         0,   0.01];
 
   cost_1 = e_1'*Q_1*e_1 + u_1'*R_1*u_1;
 end
@@ -195,8 +196,9 @@ function cost_2 = runningcosts_2(t_2, e_2, u_2)
 
   e_2=e_2';
 
-  Q_2 = 10 * eye(2);
-  R_2 = 1 * eye(2);
+  Q_2 = 4 * eye(2);
+  R_2 = [0.005, 0;
+         0,   0.01];
 
   cost_2 = e_2'*Q_2*e_2 + u_2'*R_2*u_2;
 end

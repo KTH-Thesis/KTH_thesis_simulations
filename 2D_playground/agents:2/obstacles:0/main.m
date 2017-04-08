@@ -56,8 +56,8 @@ function main
 
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
-  x_init_1       = [-10, 3.5];   % x_0
-  des_1          = [10, 3.5];   % x_des
+  x_init_1       = [0, 3.5];   % x_0
+  des_1          = [6, 3.5];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -68,8 +68,8 @@ function main
 
   % init Agent 2
   tmeasure_2     = 0.0;         % t_0
-  x_init_2       = [-10, 2.3];   % x_0
-  des_2          = [10, 2.3];   % x_des
+  x_init_2       = [0, 2.3];   % x_0
+  des_2          = [6, 2.3];   % x_des
   xmeasure_2     = x_init_2 - des_2;
   u0_2           = 10*ones(num_inputs, N); % initial guess
 
@@ -181,8 +181,8 @@ function cost_1 = runningcosts_1(t_1, e_1, u_1)
 
   e_1=e_1';
 
-  Q_1 = 10 * eye(2);
-  R_1 = [1, 0; 0, 0.1];
+  Q_1 = 20 * eye(2);
+  R_1 = [0.01, 0; 0, 0.01];
 
   cost_1 = e_1'*Q_1*e_1 + u_1'*R_1*u_1;
 end
@@ -191,8 +191,8 @@ function cost_2 = runningcosts_2(t_2, e_2, u_2)
 
   e_2=e_2';
 
-  Q_2 = 10 * eye(2);
-  R_2 = [1, 0; 0, 0.1];
+  Q_2 = 20 * eye(2);
+  R_2 = [0.01, 0; 0, 0.01];
 
   cost_2 = e_2'*Q_2*e_2 + u_2'*R_2*u_2;
 end
@@ -204,7 +204,7 @@ function cost_1 = terminalcosts_1(t_1, e_1)
 
    e_1 = e_1';
 
-   P_1 = 10*eye(2);
+   P_1 = 20*eye(2);
 
    cost_1 = e_1'*P_1*e_1;
 end
@@ -213,7 +213,7 @@ function cost_2 = terminalcosts_2(t_2, e_2)
 
    e_2 = e_2';
 
-   P_2 = 10*eye(2);
+   P_2 = 20*eye(2);
 
    cost_2 = e_2'*P_2*e_2;
 end
