@@ -121,31 +121,6 @@ function main
   for k = 1:total_iterations
 
     fprintf('iteration %d\n', k);
-      
-
-    % Solve for agent 2 --------------------------------------------------------
-    tT_2 = [tT_2; tmeasure_2];
-    xX_2 = [xX_2; xmeasure_2];
-
-    nmpc_2(@runningcosts_2, @terminalcosts_2, @constraints_2, ...
-      @terminalconstraints_2, @linearconstraints_2, @system_ct_2, ...
-      mpciterations, N, T, tmeasure_2, xmeasure_2, u0_2, ...
-      tol_opt, opt_option, ...
-      type, atol_ode_real, rtol_ode_real, atol_ode_sim, rtol_ode_sim, ...
-      iprint, @printHeader_2, @printClosedloopData_2);
-
-    tmeasure_2      = t_2(end);     % new t_0
-    x_init_2        = x_2(end,:);   % new x_0
-    xmeasure_2      = x_init_2;
-    u0_2            = [u_open_loop_2(:,2:size(u_open_loop_2,2)) u_open_loop_2(:,size(u_open_loop_2,2))];
-
-    % Store the applied input
-    uU_2 = [uU_2; u_2];
-
-    save('xX_2.mat');
-    save('uU_2.mat');
-    save('tT_2.mat');
-    
     
     % Solve for agent 1 --------------------------------------------------------
     tT_1 = [tT_1; tmeasure_1];
@@ -169,6 +144,30 @@ function main
     save('xX_1.mat');
     save('uU_1.mat');
     save('tT_1.mat');
+    
+
+    % Solve for agent 2 --------------------------------------------------------
+    tT_2 = [tT_2; tmeasure_2];
+    xX_2 = [xX_2; xmeasure_2];
+
+    nmpc_2(@runningcosts_2, @terminalcosts_2, @constraints_2, ...
+      @terminalconstraints_2, @linearconstraints_2, @system_ct_2, ...
+      mpciterations, N, T, tmeasure_2, xmeasure_2, u0_2, ...
+      tol_opt, opt_option, ...
+      type, atol_ode_real, rtol_ode_real, atol_ode_sim, rtol_ode_sim, ...
+      iprint, @printHeader_2, @printClosedloopData_2);
+
+    tmeasure_2      = t_2(end);     % new t_0
+    x_init_2        = x_2(end,:);   % new x_0
+    xmeasure_2      = x_init_2;
+    u0_2            = [u_open_loop_2(:,2:size(u_open_loop_2,2)) u_open_loop_2(:,size(u_open_loop_2,2))];
+
+    % Store the applied input
+    uU_2 = [uU_2; u_2];
+
+    save('xX_2.mat');
+    save('uU_2.mat');
+    save('tT_2.mat');
 
 
    % Solve for agent 3 --------------------------------------------------------
@@ -244,7 +243,7 @@ function cost_1 = terminalcosts_1(t_1, e_1)
 
    e_1 = e_1';
 
-   P_1 = 20*eye(2);
+   P_1 = 10*eye(2);
 
    cost_1 = e_1'*P_1*e_1;
 end
@@ -253,7 +252,7 @@ function cost_2 = terminalcosts_2(t_2, e_2)
 
    e_2 = e_2';
 
-   P_2 = 20*eye(2);
+   P_2 = 10*eye(2);
 
    cost_2 = e_2'*P_2*e_2;
 end
@@ -262,7 +261,7 @@ function cost_3 = terminalcosts_3(t_3, e_3)
 
    e_3 = e_3';
 
-   P_3 = 20*eye(2);
+   P_3 = 10*eye(2);
 
    cost_3 = e_3'*P_3*e_3;
 end

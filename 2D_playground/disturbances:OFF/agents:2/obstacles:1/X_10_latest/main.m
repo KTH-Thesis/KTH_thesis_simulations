@@ -49,7 +49,7 @@ function main
 
   total_iterations = 100;
   mpciterations  = 1;
-  N              = 5;       % length of Horizon
+  N              = 3;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
   opt_option     = 0;
@@ -270,7 +270,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   if n_2 > 0
 
-    x_open_loop_2_cut = x_open_loop_2(2:end,:);
+    x_open_loop_2_cut = x_open_loop_2(1:end,:);
 
     if method == 1
 
@@ -341,7 +341,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
 
   if n_1 > 0
 
-    x_open_loop_1_cut = x_open_loop_1(2:end,:);
+    x_open_loop_1_cut = x_open_loop_1(1:end,:);
 
     if method == 1
 
