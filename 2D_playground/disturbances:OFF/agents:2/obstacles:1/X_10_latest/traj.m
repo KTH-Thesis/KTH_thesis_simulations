@@ -11,7 +11,7 @@ grid
 axis([-7 7 0 5])
 axis equal
 filename = 'trajectories.gif';
-for i=1:size(tT_1,1)
+for i=1:size(tT_1,1)-1
     
   plot(des_1(1), des_1(2), 'X')
   plot(des_2(1), des_2(2), 'X')
@@ -39,7 +39,7 @@ end
 figure
 plot(sqrt((xX_1(:,1)+(des_1(1)-obs(1,1))*ones(size(tT_1))).^2 + (xX_1(:,2)+(des_1(2)-obs(1,2))*ones(size(tT_1))).^2));
 hold on
-plot(sqrt((xX_2(:,1)+(des_2(1)-obs(1,1))*ones(size(tT_1))).^2 + (xX_2(:,2)+(des_2(2)-obs(1,2))*ones(size(tT_2))).^2));
+plot(sqrt((xX_2(:,1)+(des_2(1)-obs(1,1))*ones(size(tT_2))).^2 + (xX_2(:,2)+(des_2(2)-obs(1,2))*ones(size(tT_2))).^2));
 grid
 
 % Distance of agent 1 to agent 2
@@ -49,7 +49,7 @@ grid
 plot(...
   sqrt(...
     (xX_1(:,1) - xX_2(:,1)+ (des_1(1) - des_2(1))*ones(size(tT_1))).^2 + ...
-    (xX_1(:,2) - xX_2(:,2)+ (des_1(2) - des_2(2))*ones(size(tT_1))).^2 ...
+    (xX_1(:,2) - xX_2(:,2)+ (des_1(2) - des_2(2))*ones(size(tT_2))).^2 ...
   ) ...
 );
 
