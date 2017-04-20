@@ -35,6 +35,11 @@ function main
   global u_open_loop_3;
   global x_open_loop_3;
 
+  % Penalty matrices
+  global Q;
+  global R;
+  global P;
+
   % Obstacles
   global obs;
   global r;
@@ -43,14 +48,15 @@ function main
   global d_min;
   global d_max;
   global ptol;
+  global otol;
   global omega_v;
-  
+
   % Global clock
   global global_clock;
-  
+
   % The sampling time
   global T;
-  
+
   % The upper threshold within the time-horizon for which the open loop
   % solution of the counterpart agent is taken into consideration
   global point_in_horizon_ceiling;
@@ -60,7 +66,7 @@ function main
 
   total_iterations = 30;
   mpciterations  = 1;
-  N              = 4;       % length of Horizon
+  N              = 10;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
   opt_option     = 0;
@@ -75,7 +81,7 @@ function main
   % init Agent 1
   tmeasure_1     = 0.0;         % t_0
   x_init_1       = [-6, 3.5];   % x_0
-  des_1          = [6, 4];   % x_des
+  des_1          = [6, 3.5];   % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -87,7 +93,7 @@ function main
   % init Agent 2
   tmeasure_2     = 0.0;         % t_0
   x_init_2       = [-6, 2.3];   % x_0
-  des_2          = [6, 2.8];   % x_des
+  des_2          = [6, 2.3];   % x_des
   xmeasure_2     = x_init_2 - des_2;
   u0_2           = 10*ones(num_inputs, N); % initial guess
 
@@ -98,7 +104,7 @@ function main
   % init Agent 3
   tmeasure_3     = 0.0;         % t_0
   x_init_3       = [-6, 4.7];   % x_0
-  des_3          = [6, 5.2];   % x_des
+  des_3          = [6, 4.7];   % x_des
   xmeasure_3     = x_init_3 - des_3;
   u0_3           = 10*ones(num_inputs, N); % initial guess
 
@@ -106,15 +112,28 @@ function main
   xX_3           = [];
   uU_3           = [];
 
+  % Penalty matrices
+  Q              = 10000 * [0.01 0;
+                    0    0.01];
+
+  R              = [0.01, 0;
+                    0,    0.01];
+
+  P              = 100 * [0.01 0;
+                    0    0.01];
+
 
   % obstacles: x_c, y_c, r
-  obs            = [0, 3.6, 1];
+  obs            = [0, 3.5, 1];
 
   % radii of agents
   r              = [0.5; 0.5; 0.5];
 
-  % Proximity tolerance
-  ptol           = 0.01;
+  % Proximity tolerance between agents
+  ptol           = 0.1;
+  
+  % Proximity tolerance between an agent and obstacles
+  otol           = 0.1;
 
   % Terminal cost tolerance
   omega_v        = 0.001;
@@ -122,10 +141,10 @@ function main
   % Distance bounds
   d_min          = r(1) + r(2) + ptol;
   d_max          = 2 * (r(1) + r(2)) + ptol;
-  
+
   % Initialize global clock
   global_clock = 0.0;
-  
+
   point_in_horizon_ceiling = 2;
 
 
@@ -133,7 +152,7 @@ function main
   for k = 1:total_iterations
 
     fprintf('iteration %d\n', k);
-    
+
     % Increment clock
     global_clock = global_clock + T;
 
@@ -218,34 +237,37 @@ end
 %% Running Cost %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function cost_1 = runningcosts_1(t_1, e_1, u_1)
+  global Q;
+  global R;
 
   e_1=e_1';
 
-  Q_1 = 100 * eye(2);
-  R_1 = [0.01, 0;
-         0,   0.01];
+  Q_1 = Q;
+  R_1 = R;
 
   cost_1 = e_1'*Q_1*e_1 + u_1'*R_1*u_1;
 end
 
 function cost_2 = runningcosts_2(t_2, e_2, u_2)
+  global Q;
+  global R;
 
   e_2=e_2';
 
-  Q_2 = 100 * eye(2);
-  R_2 = [0.01, 0;
-         0,   0.01];
+  Q_2 = Q;
+  R_2 = R;
 
   cost_2 = e_2'*Q_2*e_2 + u_2'*R_2*u_2;
 end
 
 function cost_3 = runningcosts_3(t_3, e_3, u_3)
+  global Q;
+  global R;
 
   e_3=e_3';
 
-  Q_3 = 100 * eye(2);
-  R_3 = [0.01, 0;
-         0,   0.01];
+  Q_3 = Q;
+  R_3 = R;
 
   cost_3 = e_3'*Q_3*e_3 + u_3'*R_3*u_3;
 end
@@ -254,30 +276,33 @@ end
 %% Terminal Cost %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function cost_1 = terminalcosts_1(t_1, e_1)
+  global P;
 
-   e_1 = e_1';
+  e_1 = e_1';
 
-   P_1 = 1*eye(2);
+  P_1 = P;
 
-   cost_1 = e_1'*P_1*e_1;
+  cost_1 = e_1'*P_1*e_1;
 end
 
 function cost_2 = terminalcosts_2(t_2, e_2)
+  global P;
 
-   e_2 = e_2';
+  e_2 = e_2';
 
-   P_2 = 1*eye(2);
+  P_2 = P;
 
-   cost_2 = e_2'*P_2*e_2;
+  cost_2 = e_2'*P_2*e_2;
 end
 
 function cost_3 = terminalcosts_3(t_3, e_3)
+  global P;
 
-   e_3 = e_3';
+  e_3 = e_3';
 
-   P_3 = 1*eye(2);
+  P_3 = P;
 
-   cost_3 = e_3'*P_3*e_3;
+  cost_3 = e_3'*P_3*e_3;
 end
 
 %% Constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -289,7 +314,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   global des_3;
   global obs;
   global r;
-  global ptol;
+  global otol;
   global d_min;
   global d_max;
   global x_open_loop_2;
@@ -306,13 +331,16 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   ceq = [];
 
   % Avoid collision with obstacle
-  c(1) = (obs(1,3) + r(1) + ptol) - sqrt((e_1(1)+des_1(1) - obs(1,1))^2 + (e_1(2)+des_1(2) - obs(1,2))^2);
+  c(1) = (obs(1,3) + r(1) + otol)^2 - ((e_1(1)+des_1(1) - obs(1,1))^2 + (e_1(2)+des_1(2) - obs(1,2))^2);
+
+  % The index pointing to the current configuration of agent 2 from the
+  % perspective of agent 1.
+  % index 2 is the current configuration of agents 2,3
+  point_in_horizon = 1 + int8( (t_1 - global_clock) / T );
 
   if n_2 > 0
 
     x_open_loop_2_cut = x_open_loop_2(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_1 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -336,8 +364,6 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   if n_3 > 0
 
     x_open_loop_3_cut = x_open_loop_3(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_1 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -368,7 +394,7 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
   global des_3;
   global obs;
   global r;
-  global ptol;
+  global otol;
   global d_min;
   global d_max;
   global x_open_loop_1;
@@ -384,13 +410,17 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
   c = [];
   ceq = [];
 
-  c(1) = (obs(1,3) + r(2) + ptol) - sqrt((e_2(1)+des_2(1) - obs(1,1))^2 + (e_2(2)+des_2(2) - obs(1,2))^2);
+  c(1) = (obs(1,3) + r(2) + otol) - sqrt((e_2(1)+des_2(1) - obs(1,1))^2 + (e_2(2)+des_2(2) - obs(1,2))^2);
+
+  % The index pointing to the current configuration of agent 1 from the
+  % perspective of agent 2.
+  % index 2 is the current configuration of agents 1,3
+  point_in_horizon = 1 + int8( (t_2 - global_clock) / T );
+
 
   if n_1 > 0
 
     x_open_loop_1_cut = x_open_loop_1(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_2 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -409,12 +439,10 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
 
     end
   end
-  
+
   if n_3 > 0
 
     x_open_loop_3_cut = x_open_loop_3(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_2 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -440,7 +468,7 @@ function [c,ceq] = constraints_3(t_3, e_3, u_3)
   global des_3;
   global obs;
   global r;
-  global ptol;
+  global otol;
   global d_min;
   global d_max;
   global x_open_loop_1;
@@ -456,13 +484,17 @@ function [c,ceq] = constraints_3(t_3, e_3, u_3)
   c = [];
   ceq = [];
 
-  c(1) = (obs(1,3) + r(2) + ptol) - sqrt((e_3(1)+des_3(1) - obs(1,1))^2 + (e_3(2)+des_3(2) - obs(1,2))^2);
+  c(1) = (obs(1,3) + r(2) + otol) - sqrt((e_3(1)+des_3(1) - obs(1,1))^2 + (e_3(2)+des_3(2) - obs(1,2))^2);
+
+  % The index pointing to the current configuration of agent 3 from the
+  % perspective of agents 2,3.
+  % index 2 is the current configuration of agent 1
+  point_in_horizon = 1 + int8( (t_3 - global_clock) / T );
+
 
   if n_1 > 0
 
     x_open_loop_1_cut = x_open_loop_1(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_3 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -474,19 +506,17 @@ function [c,ceq] = constraints_3(t_3, e_3, u_3)
       % Avoid collision with agent 1 along the entire horizon
       c(2) = d_min - dist;
   %     c(2) = d_min^2 - dist^2;
-
+%
       % Maintain connectivity with agent 1 along the entire horizon
       c(3) = dist - d_max;
   %     c(3) = dist^2 - d_max^2;
 
     end
   end
-  
+
   if n_2 > 0
 
     x_open_loop_2_cut = x_open_loop_2(1:end,:);
-
-    point_in_horizon = 1 + int8( (t_3 - global_clock) / T );
 
     if point_in_horizon <= point_in_horizon_ceiling;
 
@@ -501,8 +531,8 @@ function [c,ceq] = constraints_3(t_3, e_3, u_3)
 
     end
   end
-  
-  
+
+
 end
 
 
