@@ -62,7 +62,7 @@ function main
   N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
   tol_opt        = 1e-8;
-  opt_option     = 1;
+  opt_option     = 0;
   iprint         = 5;
   type           = 'differential equation';
   atol_ode_real  = 1e-12;
@@ -95,13 +95,14 @@ function main
   uU_2           = [];
 
   % Penalty matrices
-  Q              = 0.5 * eye(3);
-  R              = 0.05 * eye(2);
-  P              = 0.5 * eye(3);
+  r              = 0.1 * rand(3);
+  Q              = 0.5 * (eye(3) + r);
+  R              = 0.005 * eye(2);
+  P              = 0.5 * (eye(3));
 
   % obstacles: x_c, y_c, r
-  obs            = [0, 1.75, 1;
-                    0, 5.25, 1];
+  obs            = [0, 1.85, 1;
+                    0, 5.15, 1];
 
   % radii of agents
   r              = [0.5; 0.5];
@@ -120,7 +121,7 @@ function main
   % Initialize global clock
   global_clock = 0.0;
 
-  point_in_horizon_ceiling = 2;
+  point_in_horizon_ceiling = N;
 
 
 
@@ -266,6 +267,9 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   for i = 1:2
     c(i) = (obs(i,3) + r(1) + otol) - sqrt( (e_1(1)+des_1(1) - obs(i,1))^2 + (e_1(2)+des_1(2) - obs(i,2))^2);
   end
+  
+  c(3) = e_1(3) + des_1(3) - pi;
+  c(4) = -e_1(3) - des_1(3) - pi;
 
   if n_2 > 0
 
@@ -281,13 +285,10 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
       dist = sqrt(dist_x^2 + dist_y^2);
 
       % Avoid collision with agent 2
-      c(3) = d_min - dist;
+      c(5) = d_min - dist;
 
       % Maintain connectivity with agent 2
-      c(4) = dist - d_max;
-
-      c(5) = e_1(3) + des_1(3) - pi;
-      c(6) = -e_1(3) - des_1(3) - pi;
+      c(6) = dist - d_max;
 
     end
   end
@@ -319,6 +320,9 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
   for i = 1:2
     c(i) = (obs(i,3) + r(2) + otol) - sqrt( (e_2(1)+des_2(1) - obs(i,1))^2 + (e_2(2)+des_2(2) - obs(i,2))^2);
   end
+  
+  c(3) = e_2(3) + des_2(3) - pi;
+  c(4) = -e_2(3) - des_2(3) - pi;
 
   if n_1 > 0
 
@@ -334,13 +338,10 @@ function [c,ceq] = constraints_2(t_2, e_2, u_2)
       dist = sqrt(dist_x^2 + dist_y^2);
 
       % Avoid collision with agent 1
-      c(3) = d_min - dist;
+      c(5) = d_min - dist;
 
       % Maintain connectivity with agent 1
-      c(4) = dist - d_max;
-
-      c(5) = e_2(3) + des_2(3) - pi;
-      c(6) = -e_2(3) - des_2(3) - pi;
+      c(6) = dist - d_max;
 
     end
   end
