@@ -86,6 +86,13 @@ plot(...
 
 % errors
 figure
-plot(sqrt(xX_1(:,1).^2 + xX_1(:,2).^2))
+plot(xX_1)
+grid
+
 figure
-plot(sqrt(xX_2(:,1).^2 + xX_2(:,2).^2))
+plot(xX_2)
+grid
+
+figure
+plot(xX_3)
+grid

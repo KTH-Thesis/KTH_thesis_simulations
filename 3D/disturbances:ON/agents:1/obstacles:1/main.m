@@ -36,11 +36,14 @@ function main
 
   % The sampling time
   global T;
+  
+  % The supremum of the disturbance
+  global disturbance_ceiling;
 
 
   %% NMPC Parameters
 
-  total_iterations = 30;
+  total_iterations = 40;
   mpciterations  = 1;
   N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
@@ -83,6 +86,9 @@ function main
 
   % Terminal cost tolerance
   omega_v        = 0.001;
+  
+  % The supremum of the disturbance
+  disturbance_ceiling = pi * 10^(-5);
 
   % Initialize global clock
   global_clock = 0.0;
@@ -117,7 +123,7 @@ function main
     save('xX_1.mat');
     save('uU_1.mat');
     save('tT_1.mat');
-
+    
   end
 
   toc;

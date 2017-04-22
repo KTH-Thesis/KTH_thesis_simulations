@@ -67,9 +67,10 @@ function main
 
 
   % Penalty matrices
-  Q              = 0.5 * eye(3);
-  R              = 0.05 * eye(2);
-  P              = 0.5 * eye(3);
+  r              = 0.1 * rand(3);
+  Q              = 0.5 * (eye(3) + r);
+  R              = 0.005 * eye(2);
+  P              = 0.5 * (eye(3) + r);
 
 
   % obstacles: x_c, y_c, r
@@ -122,6 +123,7 @@ function main
   end
 
   toc;
+  save('variables.mat');
 end
 
 
@@ -185,7 +187,6 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
   c = [];
   ceq = [];
-
 
   c(1) = e_1(1) - omega_v;
   c(2) = -e_1(1) - omega_v;

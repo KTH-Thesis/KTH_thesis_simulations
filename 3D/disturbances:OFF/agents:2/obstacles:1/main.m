@@ -350,35 +350,120 @@ end
 
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
+  global des_1;
+  global des_2;
+  global obs;
+  global r;
+  global otol;
   global omega_v;
+  global d_min;
+  global d_max;
+  global x_open_loop_2;
+  global global_clock;
+  global T;
+  global point_in_horizon_ceiling;
+
+  %disp('in constraints_1')
+  n_2 = size(x_open_loop_2, 1);
 
   c = [];
   ceq = [];
 
+  % Avoid collision with obstacle
+  c(1) = (obs(1,3) + r(2) + otol) - sqrt( (e_1(1)+des_1(1) - obs(1,1))^2 + (e_1(2)+des_1(2) - obs(1,2))^2);
 
-  c(1) = e_1(1) - omega_v;
-  c(2) = -e_1(1) - omega_v;
-  c(3) = e_1(2) - omega_v;
-  c(4) = -e_1(2) - omega_v;
-  c(5) = e_1(3) - omega_v;
-  c(6) = -e_1(3) - omega_v;
+  c(2) = e_1(3) + des_1(3) - pi;
+  c(3) = -e_1(3) - des_1(3) - pi;
+
+  c(4) = e_1(1) - omega_v;
+  c(5) = -e_1(1) - omega_v;
+  c(6) = e_1(2) - omega_v;
+  c(7) = -e_1(2) - omega_v;
+  c(8) = e_1(3) - omega_v;
+  c(9) = -e_1(3) - omega_v;
+
+  if n_2 > 0
+
+    x_open_loop_2_cut = x_open_loop_2(1:end,:);
+
+    point_in_horizon = 1 + int8( (t_1 - global_clock) / T );
+
+    if point_in_horizon <= point_in_horizon_ceiling
+
+      % The distance between the two agents
+      dist_x = e_1(1) + des_1(1) - x_open_loop_2_cut(point_in_horizon,1) - des_2(1);
+      dist_y = e_1(2) + des_1(2) - x_open_loop_2_cut(point_in_horizon,2) - des_2(2);
+      dist = sqrt(dist_x^2 + dist_y^2);
+
+      % Avoid collision with agent 1
+      c(10) = d_min - dist;
+
+      % Maintain connectivity with agent 1
+      c(11) = dist - d_max;
+
+    end
+  end
+
+
 
 end
 
 function [c,ceq] = terminalconstraints_2(t_2, e_2)
 
+  global des_1;
+  global des_2;
+  global obs;
+  global r;
+  global otol;
   global omega_v;
+  global d_min;
+  global d_max;
+  global x_open_loop_1;
+  global global_clock;
+  global T;
+  global point_in_horizon_ceiling;
+
+  %disp('in constraints_2')
+  n_1 = size(x_open_loop_1, 1);
 
   c = [];
   ceq = [];
 
+  % Avoid collision with obstacle
+  c(1) = (obs(1,3) + r(2) + otol) - sqrt( (e_2(1)+des_2(1) - obs(1,1))^2 + (e_2(2)+des_2(2) - obs(1,2))^2);
 
-  c(1) = e_2(1) - omega_v;
-  c(2) = -e_2(1) - omega_v;
-  c(3) = e_2(2) - omega_v;
-  c(4) = -e_2(2) - omega_v;
-  c(5) = e_2(3) - omega_v;
-  c(6) = -e_2(3) - omega_v;
+  c(2) = e_2(3) + des_2(3) - pi;
+  c(3) = -e_2(3) - des_2(3) - pi;
+
+  c(4) = e_2(1) - omega_v;
+  c(5) = -e_2(1) - omega_v;
+  c(6) = e_2(2) - omega_v;
+  c(7) = -e_2(2) - omega_v;
+  c(8) = e_2(3) - omega_v;
+  c(9) = -e_2(3) - omega_v;
+
+  if n_1 > 0
+
+    x_open_loop_1_cut = x_open_loop_1(1:end,:);
+
+    point_in_horizon = 1 + int8( (t_2 - global_clock) / T );
+
+    if point_in_horizon <= point_in_horizon_ceiling
+
+      % The distance between the two agents
+      dist_x = e_2(1) + des_2(1) - x_open_loop_1_cut(point_in_horizon,1) - des_1(1);
+      dist_y = e_2(2) + des_2(2) - x_open_loop_1_cut(point_in_horizon,2) - des_1(2);
+      dist = sqrt(dist_x^2 + dist_y^2);
+
+      % Avoid collision with agent 1
+      c(10) = d_min - dist;
+
+      % Maintain connectivity with agent 1
+      c(11) = dist - d_max;
+
+    end
+  end
+
 
 end
 
