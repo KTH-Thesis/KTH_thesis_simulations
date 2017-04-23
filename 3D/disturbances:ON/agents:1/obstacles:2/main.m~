@@ -34,6 +34,7 @@ function main
   % Proximities
   global otol;
   global omega_v;
+  global epsilon_omega;
 
   % Global clock
   global global_clock;
@@ -46,12 +47,12 @@ function main
   global L_v;
   
 
-  % The supremum of the disturbance
-  global disturbance_ceiling;
+  % The magnitude of the disturbance
+  global disturbance;
 
   %% NMPC Parameters
 
-  total_iterations = 60;
+  total_iterations = 100;
   mpciterations  = 1;
   N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
@@ -79,14 +80,15 @@ function main
 
 
   % Penalty matrices
-  r              = 0.05 * rand(3);
-  Q              = 50 * ([1 0 0; 0 10 0; 0 0 1] + r);
+  r              = 0.01 * rand(3);
+  Q              = 100 * (eye(3) + r);
   R              = 0.005 * eye(2);
-  P              = 50 * ([1 0 0; 0 10 0; 0 0 1] + r);
+  P              = 1 * (eye(3) + r);
   
   % Input bounds
-  u_max = 10;
-  u_min = -10;  
+  u_abs = 10;
+  u_max = u_abs;
+  u_min = -u_abs;  
 
 
   % obstacles: x_c, y_c, r
@@ -100,20 +102,27 @@ function main
   otol           = 0.1;
 
   % Terminal cost tolerance
-  omega_v        = 0.001;
+  omega_v        = 0.001
   
   % omega_psi
-  omega_psi      = 0.004;
+  omega_psi      = 0.00s
   
-  % epsilon_psi
-  epsilon_psi    =  omega_psi^2 * 3 * svds(P,1);
-  
+  % epsilon_{psi, omega}
+  epsilon_psi    =  omega_psi^2 * 3 * svds(P,1)
+  epsilon_omega  = omega_v^2 * 3 * svds(P,1)
+
+    
   % Lipschitz constants
-  L_g            = u_max * sqrt(2);
-  L_v            = omega_v^2 * 3 * svds(P,1);
+  L_g            = u_max * sqrt(2)
+  L_v            = 2 * svds(P,1) * epsilon_omega
 
   % The supremum of the disturbance
-  disturbance_ceiling = 0.9 * (epsilon_psi - L_v) / (L_v / L_g * exp(L_g * (N*T - T)) * (exp(L_g * T) - 1));
+  disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v / L_g * exp(L_g * (N*T - T)) * (exp(L_g * T) - 1))
+  
+  % Distubance knob
+  d_co = 0.9;
+  
+  disturbance = d_co * disturbance_ceiling
 
   % Initialize global clock
   global_clock   = 0.0;
@@ -191,23 +200,28 @@ end
 
 function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
+  global Q;
   global des_1;
   global obs;
   global r;
   global otol;
-  global disturbance_ceiling;
+  global disturbance;
   global L_g;
   global global_clock;
   
   c = [];
   ceq = [];
   
-  n = sqrt(3) / 3 * disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
+  ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
   
-  x = e_1(1) + n;
-  y = e_1(2) + n;
-  z = e_1(3) + n;
-
+  ce = ball_t_1 / sum(sum(Q));
+  
+  th = sqrt(ce);
+  
+  x = e_1(1) + th;
+  y = e_1(2) + th;
+  z = e_1(3) + th;
+  
   % Avoid collision with obstacle
   for i = 1:2
     c(i) = (obs(i,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(i,1))^2 + (y+des_1(2) - obs(i,2))^2);
@@ -215,7 +229,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   c(3) = z + des_1(3) - pi;
   c(4) = -z - des_1(3) - pi;
-  
+   
 end
 
 
@@ -224,19 +238,29 @@ end
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
   global omega_v;
-  global disturbance_ceiling;
+  global P;
+  global disturbance;
   global L_g;
   global global_clock;
 
   c = [];
   ceq = [];
   
-  n = sqrt(3) / 3 * disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
+  ball_t_N = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
   
-  x = e_1(1) + n;
-  y = e_1(2) + n;
-  z = e_1(3) + n;
+  ce = ball_t_N / sum(sum(P));
+  
+  th = sqrt(ce);
+  
 
+  x = e_1(1) + 2*th;
+  y = e_1(2) + 2*th;
+  z = e_1(3) + 2*th;
+    
+%   x = e_1(1);
+%   y = e_1(2);
+%   z = e_1(3);
+  
 
   c(1) = x - omega_v;
   c(2) = -x - omega_v;
@@ -244,6 +268,8 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   c(4) = -y - omega_v;
   c(5) = z - omega_v;
   c(6) = -z - omega_v;
+
+%   c(1) = sqrt(x^2 + y^2 + z^2) - sqrt(2 * epsilon_omega);
   
 %   c(7) = e_1(1) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
 %   c(8) = -e_1(1) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
