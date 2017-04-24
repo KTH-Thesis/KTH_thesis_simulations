@@ -80,10 +80,10 @@ function main
 
 
   % Penalty matrices
-  r              = 0.01 * rand(3);
-  Q              = 100 * (eye(3) + r);
+  r              = 0.1 * rand(3);
+  Q              = 0.5 * (eye(3) + r);
   R              = 0.005 * eye(2);
-  P              = 1 * (eye(3) + r);
+  P              = 0.5 * (eye(3) + r);
   
   % Input bounds
   u_abs = 10;
@@ -99,13 +99,13 @@ function main
   r              = [0.5];
 
   % Proximity tolerance between agent and obstacles
-  otol           = 0.1;
+  otol           = 0.01;
 
   % Terminal cost tolerance
-  omega_v        = 0.001
+  omega_v        = 0.05
   
   % omega_psi
-  omega_psi      = 0.002
+  omega_psi      = 0.15
   
   % epsilon_{psi, omega}
   epsilon_psi    = omega_psi^2 * sum(sum(P))
@@ -117,9 +117,10 @@ function main
   L_v            = 2 * svds(P,1) * epsilon_omega
 
   % The maximum allowed supremum of the disturbance
-  disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v / L_g * exp(L_g * (N*T - T)) * (exp(L_g * T) - 1))
+%   disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v * L_g^(N-1))
+  disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1))
   
-  % Distubance knob
+  % Set disturbance volume
   d_co = 0.9;
   
   % The actual supremum of the disturbance
@@ -202,7 +203,7 @@ end
 function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   global Q;
-  global P;
+  global T;
   global des_1;
   global obs;
   global r;
@@ -214,11 +215,12 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   c = [];
   ceq = [];
   
+%   ball_t_1 = disturbance * (L_g^((t_1-global_clock)/T) - 1) / (L_g - 1);
   ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
   
   ce = ball_t_1 / sum(sum(Q));
   
-  th = sqrt(ce);
+  th = sqrt(1.5*ce);
   
   x = e_1(1) + th;
   y = e_1(2) + th;
@@ -231,6 +233,19 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   c(3) = z + des_1(3) - pi;
   c(4) = -z - des_1(3) - pi;
+  
+  x = e_1(1) - th;
+  y = e_1(2) - th;
+  z = e_1(3) - th;
+  
+  for i = 1:2
+    c(4 + i) = (obs(i,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(i,1))^2 + (y+des_1(2) - obs(i,2))^2);
+  end
+
+  c(7) = z + des_1(3) - pi;
+  c(8) = -z - des_1(3) - pi;
+  
+  
    
 end
 
@@ -240,25 +255,27 @@ end
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
   global omega_v;
-  global P;
-  global disturbance;
-  global L_g;
-  global global_clock;
+%   global P;
+%   global disturbance;
+%   global L_g;
+%   global global_clock;
+%   global T;
 
   c = [];
   ceq = [];
   
-%   ball_t_N = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
+%   % Does not work. Keep it in case  
+%   ball_t_N = disturbance * (L_g^((t_1-global_clock)/T) - 1) / (L_g - 1);
 %   
 %   ce = ball_t_N / sum(sum(P));
 %   
 %   th = sqrt(ce);
 %   
-% 
 %   x = e_1(1) + th;
 %   y = e_1(2) + th;
 %   z = e_1(3) + th;
     
+
   x = e_1(1);
   y = e_1(2);
   z = e_1(3);
@@ -272,15 +289,6 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   c(6) = -z - omega_v;
 
 %   c(1) = sqrt(x^2 + y^2 + z^2) - sqrt(2 * epsilon_omega);
-  
-%   c(7) = e_1(1) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-%   c(8) = -e_1(1) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-% 
-%   c(9) = e_1(2) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-%   c(10) = -e_1(2) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-% 
-%   c(11) = e_1(3) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-%   c(12) = -e_1(3) - disturbance_ceiling / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
   
 end
 

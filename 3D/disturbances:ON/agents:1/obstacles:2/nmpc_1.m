@@ -176,6 +176,8 @@ function [t_1, x_1, u_1, x_open_loop_1, u_open_loop_1] = nmpc_1(runningcosts, te
     global t_1;
     global u_1;
     global u_open_loop_1;
+    
+    % The open-loop solutions, aka the predicted states
     global x_open_loop_1;
 
     if (nargin>=14)
@@ -315,6 +317,8 @@ function [t_1, x_1, u_1, x_open_loop_1, u_open_loop_1] = nmpc_1(runningcosts, te
     u_1 = [];
     % Start of the NMPC iteration
     mpciter = 0;
+    
+
     while(mpciter < mpciterations)
         % Step (1) of the NMPC algorithm:
         %   Obtain new initial value
@@ -333,7 +337,6 @@ function [t_1, x_1, u_1, x_open_loop_1, u_open_loop_1] = nmpc_1(runningcosts, te
         x_1_predicted = computeOpenloopSolution(system, N, T, t0, x0, u_new, ...
                                     atol_ode_sim, rtol_ode_sim, type);
 
-        global x_open_loop_1;
         x_open_loop_1 = x_1_predicted;
 
         %   Print solution

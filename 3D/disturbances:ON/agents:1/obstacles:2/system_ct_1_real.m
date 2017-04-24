@@ -10,7 +10,8 @@ function dx = system_ct_1(t, e, u, T)
   % [x,y]
   state = e' + des_1;
 
-  d = disturbance * sin(2*t);
+  d = disturbance * cos(2*t);
+%   d = disturbance;
 
   f1 = u(1) * cos(state(3)) + d;
   f2 = u(1) * sin(state(3)) + d;
