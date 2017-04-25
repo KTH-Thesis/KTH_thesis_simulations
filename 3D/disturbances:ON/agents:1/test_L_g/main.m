@@ -52,7 +52,7 @@ function main
 
   %% NMPC Parameters
 
-  total_iterations = 200;
+  total_iterations = 100;
   mpciterations  = 1;
   N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
@@ -100,45 +100,34 @@ function main
 
   % Proximity tolerance between agent and obstacles
   otol           = 0.01;
+   
+  % The amplitude of the disturbance
+  disturbance    = 0.10
+  
+  % Terminal cost tolerance
+  omega_v        = 0.05
   
   % Lipschitz constants
-  L_g            = u_max * sqrt(2)
-  L_v            = 2 * svds(P,1) * epsilon_omega
+  L_g            = u_max * sqrt(sum(sum(Q(1:2,1:2))))
+  L_v            = 2 * svds(P,1) * omega_v % abs(max((des_1 - x_init_1)))
+  
+  % Terminal set bounds
+  epsilon_omega  = omega_v^2 * sum(sum(P))
+  epsilon_psi    = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
+  
+  omega_psi      = sqrt(epsilon_psi / sum(sum(P)))
+      
 
-%   % Terminal cost tolerance
-%   omega_v        = 0.05
-%   
-%   % omega_psi
-%   omega_psi      = 0.15
-%   
-%   % epsilon_{psi, omega}
-%   epsilon_psi    = omega_psi^2 * sum(sum(P))
-%   epsilon_omega  = omega_v^2 * sum(sum(P))
-% 
-%   % The maximum allowed supremum of the disturbance
+  % The maximum allowed supremum of the disturbance
 %   disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1))
-%   
-%   % Set disturbance volume
+  
+  % Set disturbance volume
 %   d_co           = 0.9;
-%   
-%   % The actual supremum of the disturbance
-%   disturbance    = d_co * disturbance_ceiling
 
+  
   % Initialize global clock
   global_clock   = 0.0;
   
-  % Set disturbance and acceptable error bounds
-  disp('----------')
-  disturbance   = 0.10
-  epsilon_omega = 0.05
-  epsilon_psi   = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
-  omega_v       = sqrt(epsilon_omega / sum(sum(P)))
-  omega_psi     = sqrt(epsilon_psi / sum(sum(P)))
-  ball_T_p = disturbance / L_g * (exp(L_g * N * T) - 1);
-  ce = ball_T_p / sum(sum(Q));
-  th = sqrt(ce)           
-
-
   for k = 1:total_iterations
 
     fprintf('iteration %d\n', k);
@@ -163,7 +152,7 @@ function main
     u0_1            = [u_open_loop_1(:,2:size(u_open_loop_1,2)) u_open_loop_1(:,size(u_open_loop_1,2))];
 
     % Store the applied input
-    uU_1 = [uU_1; u_1];
+    uU_1 = [uU_1, u_1];
 
     save('xX_1.mat');
     save('uU_1.mat');
@@ -225,10 +214,8 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   ceq = [];
   
   ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-  
-  ce = ball_t_1 / sum(sum(Q));
-  
-  th = sqrt(ce);
+    
+  th = ball_t_1 / sqrt(sum(sum(Q)));
   
   x = e_1(1) + th;
   y = e_1(2) + th;
@@ -262,40 +249,28 @@ end
 
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
-  global omega_v;
-%   global P;
-%   global disturbance;
-%   global L_g;
-%   global global_clock;
+%   global omega_v;
+  global epsilon_omega;
+  global P;
+
 
   c = [];
   ceq = [];
+    
+
+%   x = e_1(1);
+%   y = e_1(2);
+%   z = e_1(3);
+%  
+%   c(1) = x - omega_v;
+%   c(2) = -x - omega_v;
+%   c(3) = y - omega_v;
+%   c(4) = -y - omega_v;
+%   c(5) = z - omega_v;
+%   c(6) = -z - omega_v;
+
   
-  % Does not work. Keep it in case  
-%   ball_t_N = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-%   
-%   ce = ball_t_N / sum(sum(P));
-%   
-%   th = sqrt(ce);
-%   
-%   x = e_1(1) + th;
-%   y = e_1(2) + th;
-%   z = e_1(3) + th;
-%     
-
-  x = e_1(1);
-  y = e_1(2);
-  z = e_1(3);
-  
-
-  c(1) = x - omega_v;
-  c(2) = -x - omega_v;
-  c(3) = y - omega_v;
-  c(4) = -y - omega_v;
-  c(5) = z - omega_v;
-  c(6) = -z - omega_v;
-
-%   c(1) = sqrt(x^2 + y^2 + z^2) - sqrt(2 * epsilon_omega);
+  c(1) = e_1 * P * e_1' - epsilon_omega;
   
 end
 
