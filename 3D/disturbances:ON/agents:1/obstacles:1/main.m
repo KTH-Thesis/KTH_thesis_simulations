@@ -23,6 +23,10 @@ function main
   global R;
   global P;
 
+  % Input bounds
+  global u_max;
+  global u_min;
+
   % Obstacles
   global obs;
   global r;
@@ -30,20 +34,25 @@ function main
   % Proximities
   global otol;
   global omega_v;
+  global epsilon_omega;
 
   % Global clock
   global global_clock;
 
   % The sampling time
   global T;
-  
-  % The supremum of the disturbance
-  global disturbance_ceiling;
+
+  % Lipschitz constants
+  global L_g;
+  global L_v;
+
+  % The magnitude of the disturbance
+  global disturbance;
 
 
   %% NMPC Parameters
 
-  total_iterations = 40;
+  total_iterations = 100;
   mpciterations  = 1;
   N              = 5;       % length of Horizon
   T              = 0.1;     % sampling time
@@ -70,9 +79,15 @@ function main
 
 
   % Penalty matrices
-  Q              = 0.5 * eye(3);
-  R              = 0.05 * eye(2);
-  P              = 0.5 * eye(3);
+  r              = 0.1 * rand(3);
+  Q              = 0.5 * (eye(3) + r);
+  R              = 0.005 * eye(2);
+  P              = 0.5 * (eye(3) + r);
+
+  % Input bounds
+  u_abs = 10;
+  u_max = u_abs;
+  u_min = -u_abs;
 
 
   % obstacles: x_c, y_c, r
@@ -82,17 +97,27 @@ function main
   r              = [0.5];
 
   % Proximity tolerance between an agent and obstacles
-  otol           = 0.1;
+  otol           = 0.01;
+
+  % The amplitude of the disturbance
+  disturbance    = 0.10
 
   % Terminal cost tolerance
-  omega_v        = 0.001;
-  
-  % The supremum of the disturbance
-  disturbance_ceiling = pi * 10^(-5);
+  omega_v        = 0.05
+
+  % Lipschitz constants
+  L_g            = u_max * sqrt(sum(sum(Q(1:2,1:2))))
+  L_v            = 2 * svds(P,1) * omega_v
+
+  % Terminal set bounds
+  epsilon_omega  = omega_v^2 * 3 * svds(P,1)
+  epsilon_psi    = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
+
+  omega_psi      = sqrt(epsilon_psi / (3 * svds(P,1)))
+
 
   % Initialize global clock
   global_clock = 0.0;
-
 
   for k = 1:total_iterations
 
@@ -107,8 +132,8 @@ function main
 
     nmpc_1(@runningcosts_1, @terminalcosts_1, @constraints_1, ...
       @terminalconstraints_1, @linearconstraints_1, @system_ct_1, ...
-      @system_ct_1_real, mpciterations, N, T, tmeasure_1, xmeasure_1, u0_1, ...
-      tol_opt, opt_option, ...
+      @system_ct_1_real, mpciterations, N, T, tmeasure_1, xmeasure_1, ...
+      u0_1, tol_opt, opt_option, ...
       type, atol_ode_real, rtol_ode_real, atol_ode_sim, rtol_ode_sim, ...
       iprint, @printHeader_1, @printClosedloopData_1);
 
@@ -118,15 +143,16 @@ function main
     u0_1            = [u_open_loop_1(:,2:size(u_open_loop_1,2)) u_open_loop_1(:,size(u_open_loop_1,2))];
 
     % Store the applied input
-    uU_1 = [uU_1; u_1];
+    uU_1 = [uU_1, u_1];
 
     save('xX_1.mat');
     save('uU_1.mat');
     save('tT_1.mat');
-    
+
   end
 
   toc;
+  save('variables.mat');
 end
 
 
@@ -164,19 +190,42 @@ end
 
 function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
+  global Q;
   global des_1;
   global obs;
   global r;
   global otol;
+  global disturbance;
+  global L_g;
+  global global_clock;
 
   c = [];
   ceq = [];
 
-  % Avoid collision with obstacle
-  c(1) = (obs(1,3) + r(1) + otol) - sqrt((e_1(1)+des_1(1) - obs(1,1))^2 + (e_1(2)+des_1(2) - obs(1,2))^2);
+  ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
 
-  c(2) = e_1(3) + des_1(3) - pi;
-  c(3) = -e_1(3) - des_1(3) - pi;
+%   th = ball_t_1 / sqrt(sum(sum(Q)));
+  th = ball_t_1 / sqrt(3 * svds(Q,1));
+
+  x = e_1(1) + th;
+  y = e_1(2) + th;
+  z = e_1(3) + th;
+
+  % Avoid collision with obstacle
+  c(1) = (obs(1,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(1,1))^2 + (y+des_1(2) - obs(1,2))^2);
+
+  c(2) = z + des_1(3) - pi;
+  c(3) = -z - des_1(3) - pi;
+
+  x = e_1(1) - th;
+  y = e_1(2) - th;
+  z = e_1(3) - th;
+
+  c(4) = (obs(1,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(1,1))^2 + (y+des_1(2) - obs(1,2))^2);
+
+  c(5) = z + des_1(3) - pi;
+  c(6) = -z - des_1(3) - pi;
+
 end
 
 
@@ -185,10 +234,11 @@ end
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
   global omega_v;
+  global epsilon_omega;
+  global P;
 
   c = [];
   ceq = [];
-
 
   c(1) = e_1(1) - omega_v;
   c(2) = -e_1(1) - omega_v;
@@ -197,20 +247,26 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   c(5) = e_1(3) - omega_v;
   c(6) = -e_1(3) - omega_v;
 
+%   c(7) = e_1 * P * e_1' - epsilon_omega;
+
 end
 
 
 %% Control Constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [A, b, Aeq, beq, lb, ub] = linearconstraints_1(t_1, x_1, u_1)
-    A   = [];
-    b   = [];
-    Aeq = [];
-    beq = [];
 
-    % u constraints
-    lb  = -10;
-    ub  = 10;
+  global u_max;
+  global u_min;
+
+  A   = [];
+  b   = [];
+  Aeq = [];
+  beq = [];
+
+  % u constraints
+  lb  = u_min;
+  ub  = u_max;
 end
 
 

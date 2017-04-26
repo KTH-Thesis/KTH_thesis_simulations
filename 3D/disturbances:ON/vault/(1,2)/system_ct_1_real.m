@@ -1,4 +1,4 @@
-function dx = system_ct_1(t, e, u, T)
+function dx = system_ct_1_real(t, e, u, T)
 
   % Desired placements (destinations)
   global des_1;
@@ -18,5 +18,5 @@ function dx = system_ct_1(t, e, u, T)
   f3 = u(2) + d;
 
   dx = [f1; f2; f3];
-
+  
 end

@@ -68,9 +68,9 @@ function main
 
   % Penalty matrices
   r              = 0.1 * rand(3);
-  Q              = 5 * (eye(3) + r);
+  Q              = 0.5 * (eye(3) + r);
   R              = 0.005 * eye(2);
-  P              = 5 * (eye(3) + r);
+  P              = 0.5 * (eye(3) + r);
 
 
   % obstacles: x_c, y_c, r
@@ -80,7 +80,7 @@ function main
   r              = [0.5];
 
   % Proximity tolerance between an agent and obstacles
-  otol           = 0.1;
+  otol           = 0.01;
 
   % Terminal cost tolerance
   omega_v        = 0.001;

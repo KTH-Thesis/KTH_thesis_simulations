@@ -46,7 +46,6 @@ function main
   global L_g;
   global L_v;
   
-
   % The magnitude of the disturbance
   global disturbance;
 
@@ -102,20 +101,20 @@ function main
   otol           = 0.01;
    
   % The amplitude of the disturbance
-  disturbance   = 0.10
+  disturbance    = 0.10
   
   % Terminal cost tolerance
-  omega_v       = 0.05
+  omega_v        = 0.05
   
   % Lipschitz constants
   L_g            = u_max * sqrt(sum(sum(Q(1:2,1:2))))
-  L_v            = 2 * svds(P,1) * omega_v % abs(max((des_1 - x_init_1)))
+  L_v            = 2 * svds(P,1) * omega_v
   
   % Terminal set bounds
-  epsilon_omega = omega_v^2 * sum(sum(P))
-  epsilon_psi   = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
+  epsilon_omega  = omega_v^2 * 3 * svds(P,1)
+  epsilon_psi    = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
   
-  omega_psi     = sqrt(epsilon_psi / sum(sum(P)))
+  omega_psi      = sqrt(epsilon_psi / (3 * svds(P,1)))
       
 
   % The maximum allowed supremum of the disturbance
@@ -201,7 +200,6 @@ end
 function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   global Q;
-  global T;
   global des_1;
   global obs;
   global r;
@@ -215,7 +213,8 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   
   ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
     
-  th = ball_t_1 / sqrt(sum(sum(Q)));
+%   th = ball_t_1 / sqrt(sum(sum(Q)));
+  th = ball_t_1 / sqrt((3 * svds(Q,1)));
   
   x = e_1(1) + th;
   y = e_1(2) + th;
@@ -250,39 +249,22 @@ end
 function [c,ceq] = terminalconstraints_1(t_1, e_1)
 
   global omega_v;
-%   global P;
-%   global disturbance;
-%   global L_g;
-%   global global_clock;
+  global epsilon_omega;
+  global P;
+
 
   c = [];
   ceq = [];
+
+  c(1) = e_1(1) - omega_v;
+  c(2) = -e_1(1) - omega_v;
+  c(3) = e_1(2) - omega_v;
+  c(4) = -e_1(2) - omega_v;
+  c(5) = e_1(3) - omega_v;
+  c(6) = -e_1(3) - omega_v;
+
   
-  % Does not work. Keep it in case  
-%   ball_t_N = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-%   
-%   ce = ball_t_N / sum(sum(P));
-%   
-%   th = sqrt(ce);
-%   
-%   x = e_1(1) + th;
-%   y = e_1(2) + th;
-%   z = e_1(3) + th;
-%     
-
-  x = e_1(1);
-  y = e_1(2);
-  z = e_1(3);
-  
-
-  c(1) = x - omega_v;
-  c(2) = -x - omega_v;
-  c(3) = y - omega_v;
-  c(4) = -y - omega_v;
-  c(5) = z - omega_v;
-  c(6) = -z - omega_v;
-
-%   c(1) = sqrt(x^2 + y^2 + z^2) - sqrt(2 * epsilon_omega);
+%   c(7) = e_1 * P * e_1' - epsilon_omega;
   
 end
 
