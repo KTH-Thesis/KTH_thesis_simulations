@@ -1,12 +1,15 @@
+clear all
+close all
 load('tT_1.mat')
 load('tT_2.mat')
 load('tT_3.mat')
-load('uU_1.mat')
-load('uU_2.mat')
-load('uU_3.mat')
 load('xX_1.mat')
 load('xX_2.mat')
 load('xX_3.mat')
+load('uU_1_proper.mat')
+load('uU_3_proper.mat')
+load('uU_2_proper.mat')
+
 
 figure(1)
 hold on
@@ -84,8 +87,35 @@ plot(...
   ) ...
 );
 
+
 % errors
 figure
-plot(sqrt(xX_1(:,1).^2 + xX_1(:,2).^2))
+plot(xX_1)
+grid
+
 figure
-plot(sqrt(xX_2(:,1).^2 + xX_2(:,2).^2))
+plot(xX_2)
+grid
+
+figure
+plot(xX_3)
+grid
+
+% inputs
+figure
+hold on
+plot(uU_1_proper(1,:))
+plot(uU_1_proper(2,:))
+grid
+
+figure
+hold on
+plot(uU_2_proper(1,:))
+plot(uU_2_proper(2,:))
+grid
+
+figure
+hold on
+plot(uU_3_proper(1,:))
+plot(uU_3_proper(2,:))
+grid

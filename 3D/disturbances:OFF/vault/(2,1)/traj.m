@@ -1,7 +1,9 @@
+clear all
+close all
 load('tT_1.mat')
 load('tT_2.mat')
-load('uU_1.mat')
-load('uU_2.mat')
+load('uU_1_proper.mat')
+load('uU_2_proper.mat')
 load('xX_1.mat')
 load('xX_2.mat')
 
@@ -13,8 +15,8 @@ axis equal
 filename = 'trajectories.gif';
 for i=1:size(tT_1,1)-1
 
-  plot(des_1(1), des_1(2), 'X')
-  plot(des_2(1), des_2(2), 'X')
+  plot(des_1(1), des_1(2), 'X', 'Color', 'b')
+  plot(des_2(1), des_2(2), 'X', 'Color', 'r')
 
   viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
   viscircles([xX_2(i,1) + des_2(1),  xX_2(i,2) + des_2(2)], r(2), 'EdgeColor', 'r')
@@ -66,4 +68,17 @@ hold on
 plot(xX_2(:,1))
 plot(xX_2(:,2))
 plot(xX_2(:,3))
+grid
+
+% inputs
+figure
+hold on
+plot(uU_1_proper(1,:))
+plot(uU_1_proper(2,:))
+grid
+
+figure
+hold on
+plot(uU_2_proper(1,:))
+plot(uU_2_proper(2,:))
 grid
