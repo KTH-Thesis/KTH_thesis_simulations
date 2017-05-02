@@ -14,10 +14,6 @@ for i=1:size(tT_1,1)
 
   viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
   
-  plot(xX_1(1:i,1) + des_1(1),  xX_1(1:i,2) + des_1(2) + r(1), 'Color', 'b')
-  plot(xX_1(1:i,1) + des_1(1),  xX_1(1:i,2) + des_1(2) - r(1), 'Color', 'b')
-
-
   viscircles([obs(1,1), obs(1,2)], obs(1,3), 'EdgeColor', 'k')
   viscircles([obs(2,1), obs(2,2)], obs(2,3), 'EdgeColor', 'k')
 
@@ -63,3 +59,7 @@ V = zeros(size(xX_1,1), 1);
 for i = 1:size(xX_1,1)
   V(i) = xX_1(i,:) * P * xX_1(i,:)'
 end
+
+figure
+plot(V)
+grid

@@ -112,7 +112,6 @@ function main
   % Terminal set bounds
   epsilon_omega  = omega_v^2 * 3 * svds(P,1)
   epsilon_psi    = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
-
   omega_psi      = sqrt(epsilon_psi / (3 * svds(P,1)))
 
 
@@ -204,14 +203,13 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
 
   ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
 
-%   th = ball_t_1 / sqrt(sum(sum(Q)));
-  th = ball_t_1 / sqrt(3 * svds(Q,1));
+  th = ball_t_1 / sqrt(sum(sum(Q)));
 
   x = e_1(1) + th;
   y = e_1(2) + th;
   z = e_1(3) + th;
 
-  % Avoid collision with obstacle
+  % Avoid collision with obstacle -- max
   c(1) = (obs(1,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(1,1))^2 + (y+des_1(2) - obs(1,2))^2);
 
   c(2) = z + des_1(3) - pi;
@@ -221,6 +219,7 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   y = e_1(2) - th;
   z = e_1(3) - th;
 
+  % Avoid collision with obstacle -- min
   c(4) = (obs(1,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(1,1))^2 + (y+des_1(2) - obs(1,2))^2);
 
   c(5) = z + des_1(3) - pi;
@@ -246,8 +245,6 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   c(4) = -e_1(2) - omega_v;
   c(5) = e_1(3) - omega_v;
   c(6) = -e_1(3) - omega_v;
-
-%   c(7) = e_1 * P * e_1' - epsilon_omega;
 
 end
 

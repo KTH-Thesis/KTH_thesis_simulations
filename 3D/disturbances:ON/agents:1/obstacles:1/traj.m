@@ -11,15 +11,10 @@ filename = 'trajectories.gif';
 for i=1:size(tT_1,1)
   cla
   plot(des_1(1), des_1(2), 'X', 'Color', 'b')
-
-  viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
   
-  plot(xX_1(1:i,1) + des_1(1),  xX_1(1:i,2) + des_1(2) + r(1), 'Color', 'b')
-  plot(xX_1(1:i,1) + des_1(1),  xX_1(1:i,2) + des_1(2) - r(1), 'Color', 'b')
-
-
+  viscircles([xX_1(i,1) + des_1(1),  xX_1(i,2) + des_1(2)], r(1), 'EdgeColor', 'b')
   viscircles([obs(1,1), obs(1,2)], obs(1,3), 'EdgeColor', 'k')
-
+  
   pause()
 
   drawnow
@@ -61,3 +56,7 @@ V = zeros(size(xX_1,1), 1);
 for i = 1:size(xX_1,1)
   V(i) = xX_1(i,:) * P * xX_1(i,:)'
 end
+
+figure
+plot(V)
+grid

@@ -22,10 +22,10 @@ function main
   global Q;
   global R;
   global P;
-  
+
   % Input bounds
   global u_max;
-  global u_min;  
+  global u_min;
 
   % Obstacles
   global obs;
@@ -38,14 +38,14 @@ function main
 
   % Global clock
   global global_clock;
-  
+
   % The sampling time
   global T;
-  
+
   % Lipschitz constants
   global L_g;
   global L_v;
-  
+
   % The magnitude of the disturbance
   global disturbance;
 
@@ -68,8 +68,8 @@ function main
 
   % init Agent 1
   tmeasure_1     = 0.0;             % t_0
-  x_init_1       = [-6, 3, 0];   % x_0
-  des_1          = [6, 3, 0];    % x_des
+  x_init_1       = [-6, 1.85, 0];   % x_0
+  des_1          = [6, 1.85, 0];    % x_des
   xmeasure_1     = x_init_1 - des_1;
   u0_1           = 10*ones(num_inputs, N); % initial guess
 
@@ -79,15 +79,16 @@ function main
 
 
   % Penalty matrices
-  r              = 0.1 * rand(3);
-  Q              = 0.5 * (eye(3) + r);
+  rn             = 0.1 * rand(3);
+  Q              = 0.5 * (eye(3) + rn);
   R              = 0.005 * eye(2);
-  P              = 0.5 * (eye(3) + r);
-  
+  P              = 0.5 * (eye(3) + rn);
+
+
   % Input bounds
   u_abs = 10;
   u_max = u_abs;
-  u_min = -u_abs;  
+  u_min = -u_abs;
 
 
   % obstacles: x_c, y_c, r
@@ -99,34 +100,26 @@ function main
 
   % Proximity tolerance between agent and obstacles
   otol           = 0.01;
-   
+
   % The amplitude of the disturbance
   disturbance    = 0.10
-  
+
   % Terminal cost tolerance
   omega_v        = 0.05
-  
+
   % Lipschitz constants
   L_g            = u_max * sqrt(sum(sum(Q(1:2,1:2))))
   L_v            = 2 * svds(P,1) * omega_v
-  
+
   % Terminal set bounds
   epsilon_omega  = omega_v^2 * 3 * svds(P,1)
   epsilon_psi    = (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1)) * disturbance + epsilon_omega
-  
   omega_psi      = sqrt(epsilon_psi / (3 * svds(P,1)))
-      
 
-  % The maximum allowed supremum of the disturbance
-%   disturbance_ceiling = (epsilon_psi - epsilon_omega) / (L_v / L_g * exp(L_g * (N * T - T)) * (exp(L_g * T) - 1))
-  
-  % Set disturbance volume
-%   d_co           = 0.9;
 
-  
   % Initialize global clock
   global_clock   = 0.0;
-  
+
   for k = 1:total_iterations
 
     fprintf('iteration %d\n', k);
@@ -160,7 +153,7 @@ function main
   end
 
   toc;
-  
+
   save('variables.mat');
 end
 
@@ -207,40 +200,38 @@ function [c,ceq] = constraints_1(t_1, e_1, u_1)
   global disturbance;
   global L_g;
   global global_clock;
-  
+
   c = [];
   ceq = [];
-  
+
   ball_t_1 = disturbance / L_g * (exp(L_g * (t_1 - global_clock)) - 1);
-    
-%   th = ball_t_1 / sqrt(sum(sum(Q)));
-  th = ball_t_1 / sqrt((3 * svds(Q,1)));
-  
+
+ th = ball_t_1 / sqrt((3 * svds(Q,1)));
+
   x = e_1(1) + th;
   y = e_1(2) + th;
   z = e_1(3) + th;
-  
-  % Avoid collision with obstacle
+
+  % Avoid collision with obstacles -- max
   for i = 1:2
     c(i) = (obs(i,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(i,1))^2 + (y+des_1(2) - obs(i,2))^2);
   end
 
   c(3) = z + des_1(3) - pi;
   c(4) = -z - des_1(3) - pi;
-  
+
   x = e_1(1) - th;
   y = e_1(2) - th;
   z = e_1(3) - th;
-  
+
+  % Avoid collision with obstacles -- min
   for i = 1:2
     c(4 + i) = (obs(i,3) + r(1) + otol) - sqrt((x+des_1(1) - obs(i,1))^2 + (y+des_1(2) - obs(i,2))^2);
   end
 
   c(7) = z + des_1(3) - pi;
   c(8) = -z - des_1(3) - pi;
-  
-  
-   
+
 end
 
 
@@ -263,9 +254,6 @@ function [c,ceq] = terminalconstraints_1(t_1, e_1)
   c(5) = e_1(3) - omega_v;
   c(6) = -e_1(3) - omega_v;
 
-  
-%   c(7) = e_1 * P * e_1' - epsilon_omega;
-  
 end
 
 
@@ -275,7 +263,7 @@ function [A, b, Aeq, beq, lb, ub] = linearconstraints_1(t_1, x_1, u_1)
 
   global u_max;
   global u_min;
-    
+
   A   = [];
   b   = [];
   Aeq = [];

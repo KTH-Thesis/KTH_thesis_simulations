@@ -113,7 +113,7 @@ function main
   uU_3           = [];
 
   % Penalty matrices
-  r = 0.05 * rand(3);
+  r              = 0.05 * rand(3);
   Q              = 0.5 * (eye(3) + r);
   R              = 0.005 * eye(2);
   P              = 0.5 * (eye(3) + r);
