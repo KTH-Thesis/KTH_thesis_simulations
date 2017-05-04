@@ -1,3 +1,5 @@
+close all
+clear all
 load('tT_1.mat')
 load('tT_2.mat')
 load('xX_1.mat')
@@ -48,38 +50,59 @@ plot(sqrt((xX_1(:,1)+(des_1(1)-obs(1,1))*ones(size(tT_1))).^2 + (xX_1(:,2)+(des_
 plot(sqrt((xX_2(:,1)+(des_2(1)-obs(1,1))*ones(size(tT_2))).^2 + (xX_2(:,2)+(des_2(2)-obs(1,2))*ones(size(tT_2))).^2));
 plot(sqrt((xX_3(:,1)+(des_3(1)-obs(1,1))*ones(size(tT_3))).^2 + (xX_3(:,2)+(des_3(2)-obs(1,2))*ones(size(tT_3))).^2));
 grid
+constr_x = [0, 100];
+constr_y = [1.51, 1.51];
+plot(constr_x, constr_y, 'Color', 'c')
+axis([0 100 1.2 7])
 
 % Distance of agent 1 to agent 2
 figure
 hold on
+constr_x = [0, 100];
+constr_y = [1.01, 1.01];
+plot(constr_x, constr_y, 'Color', 'c')
+constr_x = [0, 100];
+constr_y = [2.01, 2.01];
+plot(constr_x, constr_y, 'Color', 'c')
+axis([0 100 0.8 2.2])
 grid
 plot(...
   sqrt(...
     (xX_1(:,1) - xX_2(:,1)+ (des_1(1) - des_2(1))*ones(size(tT_1))).^2 + ...
     (xX_1(:,2) - xX_2(:,2)+ (des_1(2) - des_2(2))*ones(size(tT_1))).^2 ...
-  ) ...
+  ), 'Color', 'b' ...
 );
 
 % Distance of agent 1 to agent 3
 figure
 hold on
+constr_x = [0, 100];
+constr_y = [1.01, 1.01];
+plot(constr_x, constr_y, 'Color', 'c')
+constr_x = [0, 100];
+constr_y = [2.01, 2.01];
+plot(constr_x, constr_y, 'Color', 'c')
+axis([0 100 0.8 2.2])
 grid
 plot(...
   sqrt(...
     (xX_1(:,1) - xX_3(:,1)+ (des_1(1) - des_3(1))*ones(size(tT_3))).^2 + ...
     (xX_1(:,2) - xX_3(:,2)+ (des_1(2) - des_3(2))*ones(size(tT_3))).^2 ...
-  ) ...
+  ), 'Color', 'b' ...
 );
 
 % Distance of agent 2 to agent 3
 figure
 hold on
+constr_x = [0, 100];
+constr_y = [1.01, 1.01];
+plot(constr_x, constr_y, 'Color', 'c')
 grid
 plot(...
   sqrt(...
     (xX_2(:,1) - xX_3(:,1)+ (des_2(1) - des_3(1))*ones(size(tT_2))).^2 + ...
     (xX_2(:,2) - xX_3(:,2)+ (des_2(2) - des_3(2))*ones(size(tT_3))).^2 ...
-  ) ...
+  ), 'Color', 'b' ...
 );
 
 % errors
@@ -97,32 +120,54 @@ grid
 
 % Inputs
 figure
-plot(uU_1(1,:))
 hold on
-plot(uU_1(2,:))
+constr_x = [0, 100];
+constr_y = [-10, -10];
+plot(constr_x, constr_y, 'Color', 'c')
+constr_x = [0, 100];
+constr_y = [10, 10];
+plot(constr_x, constr_y, 'Color', 'c')
+plot(uU_1(1,:), 'Color', [0    0.4470    0.7410])
+plot(uU_1(2,:), 'Color',  [0.8500    0.3250    0.0980])
 grid
+axis([0 100 -11 11])
 
 figure
-plot(uU_2(1,:))
 hold on
-plot(uU_2(2,:))
+constr_x = [0, 100];
+constr_y = [-10, -10];
+plot(constr_x, constr_y, 'Color', 'c')
+constr_x = [0, 100];
+constr_y = [10, 10];
+plot(constr_x, constr_y, 'Color', 'c')
+plot(uU_2(1,:), 'Color', [0    0.4470    0.7410])
+plot(uU_2(2,:), 'Color', [ 0.8500    0.3250    0.0980])
 grid
+axis([0 30 -11 11])
+
 
 figure
-plot(uU_3(1,:))
 hold on
-plot(uU_3(2,:))
+constr_x = [0, 100];
+constr_y = [-10, -10];
+plot(constr_x, constr_y, 'Color', 'c')
+constr_x = [0, 100];
+constr_y = [10, 10];
+plot(constr_x, constr_y, 'Color', 'c')
+plot(uU_3(1,:), 'Color', [0    0.4470    0.7410])
+plot(uU_3(2,:), 'Color', [ 0.8500    0.3250    0.0980])
 grid
+axis([0 100 -11 11])
 
 
 % V
 V_1 = zeros(size(xX_1,1), 1);
 V_2 = zeros(size(xX_2,1), 1);
-V_3 = zeros(size(xX_3,1), 1);
+V_3 = zeros(size(xX_2,1), 1);
 for i = 1:size(xX_1,1)
-  V_1(i) = xX_1(i,:) * P * xX_1(i,:)'
-  V_2(i) = xX_2(i,:) * P * xX_2(i,:)'
-  V_3(i) = xX_3(i,:) * P * xX_3(i,:)'
+  V_1(i) = xX_1(i,:) * P * xX_1(i,:)';
+  V_2(i) = xX_2(i,:) * P * xX_2(i,:)';
+  V_3(i) = xX_3(i,:) * P * xX_3(i,:)';
 end
 
 figure
@@ -130,5 +175,19 @@ plot(V_1)
 hold on
 plot(V_2)
 plot(V_3)
+% constr_x = [0, 100];
+% constr_y = [0.4809, 0.4809];
+% plot(constr_x, constr_y, 'Color', 'm')
 grid
-axis([15 size(V_1,1) 0 0.01])
+
+figure
+plot(V_1)
+hold on
+plot(V_2)
+plot(V_3)
+
+constr_x = [0, 100];
+constr_y = [0.0105, 0.0105];
+plot(constr_x, constr_y, 'Color', 'c')
+grid
+axis([1 size(V_1,1) 0 0.015])
